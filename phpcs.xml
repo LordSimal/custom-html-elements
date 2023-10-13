@@ -5,4 +5,5 @@
   <rule ref="CakePHP"/>
 
   <file>src/</file>
+  <file>tests/</file>
 </ruleset>

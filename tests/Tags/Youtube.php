@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace LordSimal\CustomHtmlElements\Test\Tags;
 
 use LordSimal\CustomHtmlElements\CustomTag;

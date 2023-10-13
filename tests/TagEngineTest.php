@@ -20,7 +20,7 @@ class TagEngineTest extends TestCase
     {
         $element = '<c-youtube src="RLdsCL4RDf8"></c-youtube>';
         $tagEngine = new TagEngine([
-            'tag_directories' => [__DIR__.DIRECTORY_SEPARATOR.'Tags'.DIRECTORY_SEPARATOR],
+            'tag_directories' => [__DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR],
         ]);
         $result = $tagEngine->parse($element);
         $expected = <<<HTML
@@ -42,7 +42,7 @@ HTML;
     {
         $element = '<c-youtube src="RLdsCL4RDf8" />';
         $tagEngine = new TagEngine([
-            'tag_directories' => [__DIR__.DIRECTORY_SEPARATOR.'Tags'.DIRECTORY_SEPARATOR],
+            'tag_directories' => [__DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR],
         ]);
         $result = $tagEngine->parse($element);
         $expected = <<<HTML
@@ -64,7 +64,7 @@ HTML;
     {
         $element = '<c-button type="primary" text="Click me" url="/something/stupid" />';
         $tagEngine = new TagEngine([
-            'tag_directories' => [__DIR__.DIRECTORY_SEPARATOR.'Tags'.DIRECTORY_SEPARATOR],
+            'tag_directories' => [__DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR],
         ]);
         $result = $tagEngine->parse($element);
         $expected = <<<HTML
@@ -83,8 +83,8 @@ HTML;
         $element = '<c-github></c-github>';
         $tagEngine = new TagEngine([
             'tag_directories' => [
-                __DIR__.DIRECTORY_SEPARATOR.'Tags'.DIRECTORY_SEPARATOR,
-                __DIR__.DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR
+                __DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR,
+                __DIR__ . DIRECTORY_SEPARATOR . 'plugins' . DIRECTORY_SEPARATOR,
             ],
         ]);
         $result = $tagEngine->parse($element);
@@ -105,8 +105,8 @@ HTML;
         $element = '<c-github>Inner Content</c-github>';
         $tagEngine = new TagEngine([
             'tag_directories' => [
-                __DIR__.DIRECTORY_SEPARATOR.'Tags'.DIRECTORY_SEPARATOR,
-                __DIR__.DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR
+                __DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR,
+                __DIR__ . DIRECTORY_SEPARATOR . 'plugins' . DIRECTORY_SEPARATOR,
             ],
         ]);
         $result = $tagEngine->parse($element);
@@ -127,8 +127,8 @@ HTML;
         $element = '<c-nested />';
         $tagEngine = new TagEngine([
             'tag_directories' => [
-                __DIR__.DIRECTORY_SEPARATOR.'Tags'.DIRECTORY_SEPARATOR,
-                __DIR__.DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR
+                __DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR,
+                __DIR__ . DIRECTORY_SEPARATOR . 'plugins' . DIRECTORY_SEPARATOR,
             ],
         ]);
         $result = $tagEngine->parse($element);
@@ -148,10 +148,10 @@ HTML;
         $element = '<c-nested />';
         $tagEngine = new TagEngine([
             'tag_directories' => [
-                __DIR__.DIRECTORY_SEPARATOR.'Tags'.DIRECTORY_SEPARATOR,
-                __DIR__.DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR
+                __DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR,
+                __DIR__ . DIRECTORY_SEPARATOR . 'plugins' . DIRECTORY_SEPARATOR,
             ],
-            'sniff_for_nested_tags' => true
+            'sniff_for_nested_tags' => true,
         ]);
         $result = $tagEngine->parse($element);
         $expected = <<<HTML

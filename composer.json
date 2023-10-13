@@ -29,9 +29,9 @@
         }
     },
     "scripts": {
-        "cs-check": "phpcs --colors -p",
-        "cs-fix": "phpcbf --colors -p",
-        "test": "phpunit --colors=always",
+        "cs-check": "vendor/bin/phpcs --colors -p",
+        "cs-fix": "vendor/bin/phpcbf --colors -p",
+        "test": "vendor/bin/phpunit --colors=always",
         "coverage": "php -d xdebug.mode=coverage vendor/bin/phpunit --coverage-html coverage",
         "stan-setup": "cp composer.json composer.backup && composer require --dev symfony/polyfill-php81 phpstan/phpstan:^1.10 psalm/phar:^5.15 && mv composer.backup composer.json",
         "phpstan": "vendor/bin/phpstan analyze",
