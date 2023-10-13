@@ -40,12 +40,10 @@ To render this custom HTML element you need to do this:
 ```php
 $htmlOutput = ''; // This variable represents what is shown above
 $me = new \LordSimal\CustomHtmlElements\TagEngine([]
-    'parse_on_shutdown' 	=> true,
-    'tag_directories'       => [
+    'tag_directories' => [
         __DIR__.DIRECTORY_SEPARATOR.'Tags'.DIRECTORY_SEPARATOR,
         __DIR__.DIRECTORY_SEPARATOR.'OtherTagsFolder'.DIRECTORY_SEPARATOR,
     ],
-    'sniff_for_buried_tags' => true
 ]);
 echo $me->parse($htmlOutput);
 ```
