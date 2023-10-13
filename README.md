@@ -1,4 +1,7 @@
 # Custom HTML Elements
+
+[![Latest Stable Version](http://poser.pugx.org/lordsimal/custom-html-elements/v)](https://packagist.org/packages/lordsimal/custom-html-elements) [![Total Downloads](http://poser.pugx.org/lordsimal/custom-html-elements/downloads)](https://packagist.org/packages/lordsimal/custom-html-elements) [![Latest Unstable Version](http://poser.pugx.org/lordsimal/custom-html-elements/v/unstable)](https://packagist.org/packages/lordsimal/custom-html-elements) [![License](http://poser.pugx.org/lordsimal/custom-html-elements/license)](https://packagist.org/packages/lordsimal/custom-html-elements) [![PHP Version Require](http://poser.pugx.org/lordsimal/custom-html-elements/require/php)](https://packagist.org/packages/lordsimal/custom-html-elements)
+
 Allows you to create custom HTML elements to render more complex template parts with a simpler HTML representation
 
 ## Requirements
