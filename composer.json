@@ -1,0 +1,51 @@
+{
+    "name": "lordsimal/custom-html-elements",
+    "description": "Allows you to create custom HTML elements to render more complex template parts",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Kevin Pfeifer",
+            "email": "kevin.pfeifer@sunlime.at"
+        }
+    ],
+    "require": {
+        "php": ">=8.1",
+        "spatie/php-structure-discoverer": "^1.2"
+    },
+    "require-dev": {
+        "cakephp/cakephp-codesniffer": "^5.0",
+        "phpunit/phpunit": "^10.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "LordSimal\\CustomHtmlElements\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "LordSimal\\CustomHtmlElements\\Test\\": "tests/",
+            "LordSimal\\CustomHtmlElements\\MyPlugin\\": "tests/plugins/MyPlugin/"
+        }
+    },
+    "scripts": {
+        "cs-check": "phpcs --colors -p",
+        "cs-fix": "phpcbf --colors -p",
+        "test": "phpunit --colors=always",
+        "coverage": "php -d xdebug.mode=coverage vendor/bin/phpunit --coverage-html coverage",
+        "stan-setup": "cp composer.json composer.backup && composer require --dev symfony/polyfill-php81 phpstan/phpstan:^1.10 psalm/phar:^5.15 && mv composer.backup composer.json",
+        "phpstan": "vendor/bin/phpstan analyze",
+        "psalm": "vendor/bin/psalm.phar --show-info=false",
+        "stan": [
+            "@phpstan",
+            "@psalm"
+        ],
+        "stan-baseline": "vendor/bin/phpstan --generate-baseline",
+        "psalm-baseline": "vendor/bin/psalm.phar --set-baseline=psalm-baseline.xml"
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    }
+}

@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - 'main'
+  pull_request:
+    branches:
+      - '*'
+  workflow_dispatch:
+
+permissions:
+  contents: read # to fetch code (actions/checkout)
+
+jobs:
+  testsuite-linux:
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ['8.1', '8.2']
+        dependencies: ['highest']
+        include:
+          - php-version: '8.1'
+            dependencies: 'lowest'
+          - php-version: '8.2'
+            dependencies: 'highest'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: mbstring, intl
+          ini-values: zend.assertions=1
+          coverage: pcov
+
+      - name: Composer install
+        uses: ramsey/composer-install@v2
+        with:
+          dependency-versions: ${{ matrix.dependencies }}
+          composer-options: ${{ matrix.composer-options }}
+
+      - name: Run PHPUnit
+        run: |
+          if [[ ${{ matrix.php-version }} == '8.2' ]]; then
+            vendor/bin/phpunit --coverage-clover=coverage.xml
+          else
+            vendor/bin/phpunit
+          fi
+
+      - name: Code Coverage Report
+        if: success() && matrix.php-version == '8.2'
+        uses: codecov/codecov-action@v3
+
+  cs-stan:
+    name: Coding Standard & Static Analysis
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, intl
+          coverage: none
+          tools: cs2pr
+
+      - name: Composer Install
+        run: composer stan-setup
+
+      - name: Run phpcs
+        run: vendor/bin/phpcs --report=checkstyle src/ tests/ | cs2pr
+
+      - name: Run psalm
+        run: vendor/bin/psalm.phar --output-format=github
+
+      - name: Run phpstan
+        if: always()
+        run: vendor/bin/phpstan.phar analyse --error-format=github
