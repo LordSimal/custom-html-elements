@@ -42,13 +42,13 @@ To render this custom HTML element you need to do this:
 
 ```php
 $htmlOutput = ''; // This variable represents what is shown above
-$me = new \LordSimal\CustomHtmlElements\TagEngine([]
+$engine = new \LordSimal\CustomHtmlElements\TagEngine([
     'tag_directories' => [
         __DIR__.DIRECTORY_SEPARATOR.'Tags'.DIRECTORY_SEPARATOR,
         __DIR__.DIRECTORY_SEPARATOR.'OtherTagsFolder'.DIRECTORY_SEPARATOR,
     ],
 ]);
-echo $me->parse($htmlOutput);
+echo $engine->parse($htmlOutput);
 ```
 
 The element logic can be placed in e.g. `Tags/Youtube.php` or `OtherTagsFolder/Youtube.php`:
@@ -155,7 +155,7 @@ both are rendered the same way.
 By default this library doesn't render nested custom HTML elements. To enable this feature you have to add this config while creating the TagEngine
 
 ```php
-$tagEngine = new TagEngine([
+$tagEngine = new \LordSimal\CustomHtmlElements\TagEngine([
     'tag_directories' => [
         __DIR__.DIRECTORY_SEPARATOR.'Tags'.DIRECTORY_SEPARATOR,
     ],
