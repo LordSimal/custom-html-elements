@@ -62,7 +62,7 @@ class TagEngine
                     TagRegistry::register($class);
                 }
                 // Also catch all other HTML elements
-                $searchRegex .= '|\b.*>\b';
+                $searchRegex .= '|\b\w*[>\s]\b';
             }
             $this->searchReg = "<($searchRegex)";
         }
@@ -221,7 +221,7 @@ class TagEngine
                 $closer = "</$tagName>";
                 $currentSource = substr($source, $eot); // HTML from Last occurrence till end or Last processed Tag
                 $nextDOM = strpos($currentSource, '<', 1); // Start of Next DOM Tag
-                $nextCloseTag = strpos($currentSource, '/' . '>'); // Close Bracket Loc
+                $nextCloseTag = strpos($currentSource, '/>'); // Close Bracket Loc
 
                 if ($nextCloseTag !== false && ($nextCloseTag < $nextDOM || ($nextCloseTag && $nextDOM === false))) {
                     // Closing DOM is before the next DOM element (indicates <tag /> format)

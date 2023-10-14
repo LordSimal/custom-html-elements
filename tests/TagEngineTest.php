@@ -10,7 +10,7 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 
 /**
- * @see TagEngine
+ * @see \LordSimal\CustomHtmlElements\TagEngine
  */
 class TagEngineTest extends TestCase
 {
@@ -294,7 +294,7 @@ HTML;
      */
     public function testTagWithAttributeSelfClosingAndNormalHTML(): void
     {
-        $element = '<c-youtube src="RLdsCL4RDf8" /><div>Test</div>';
+        $element = '<c-youtube src="RLdsCL4RDf8" /><div>Test</div><input type="text" />';
         $tagEngine = new TagEngine([
             'tag_directories' => [__DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR],
         ]);
@@ -304,7 +304,7 @@ HTML;
 				src="https://www.youtube.com/embed/RLdsCL4RDf8" 
 				allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
 				allowfullscreen>
-			</iframe><div>Test</div>
+			</iframe><div>Test</div><input type="text" />
 HTML;
         $this->assertSame($expected, $result);
     }
@@ -338,6 +338,30 @@ HTML;
         ]);
         $result = $tagEngine->parse($element);
         $expected = '<div>This is a Test</div>';
+        $this->assertSame($expected, $result);
+    }
+
+    /**
+     * Test output buffered
+     *
+     * @return void
+     */
+    public function testOutputBuffered(): void
+    {
+        $element = '<c-github></c-github>';
+        $tagEngine = new TagEngine([
+            'tag_directories' => [
+                __DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR,
+                __DIR__ . DIRECTORY_SEPARATOR . 'plugins' . DIRECTORY_SEPARATOR,
+            ],
+        ]);
+        ob_start();
+        echo $element;
+        $result = $tagEngine->parse();
+        $expected = <<<HTML
+			This is a render from a plugin tag
+            
+HTML;
         $this->assertSame($expected, $result);
     }
 }

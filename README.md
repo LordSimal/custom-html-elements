@@ -163,6 +163,10 @@ $tagEngine = new \LordSimal\CustomHtmlElements\TagEngine([
 ]);
 ```
 
+## More examples?
+
+See the [TagEngineTest](https://github.com/LordSimal/custom-html-elements/blob/main/tests/TagEngineTest.php) for all kinds of different variants how to use the TagEngine
+
 ## Acknowledgements
 
 This library is inspired by the following packages
