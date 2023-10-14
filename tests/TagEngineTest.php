@@ -83,6 +83,32 @@ HTML;
     }
 
     /**
+     * Test multiple self-closing tag variants
+     *
+     * @return void
+     */
+    public function testMultipleTagsWithAttributeSelfClosing(): void
+    {
+        $element = '<c-youtube src="RLdsCL4RDf8" /><c-youtube src="RLdsCL4RDf8" />';
+        $tagEngine = new TagEngine([
+            'tag_directories' => [__DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR],
+        ]);
+        $result = $tagEngine->parse($element);
+        $expected = <<<HTML
+			<iframe width="560" height="315" 
+				src="https://www.youtube.com/embed/RLdsCL4RDf8" 
+				allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+				allowfullscreen>
+			</iframe>			<iframe width="560" height="315" 
+				src="https://www.youtube.com/embed/RLdsCL4RDf8" 
+				allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+				allowfullscreen>
+			</iframe>
+HTML;
+        $this->assertSame($expected, $result);
+    }
+
+    /**
      * Test tags work with multiple attributes
      *
      * @return void
