@@ -8,14 +8,12 @@ use Spatie\StructureDiscoverer\Discover;
 
 class TagEngine
 {
-    private static int $instance = 0;
-
     /**
      * Holds the options array
      *
      * @var array
      */
-    private array $options = [
+    protected array $options = [
         'tag_directories' => [], // Location for tag extensions
         'sniff_for_nested_tags' => false, // recursive search for tags
         'cache_tags' => false, // cache for improved performance (requires cache_directory)
@@ -96,8 +94,6 @@ class TagEngine
      */
     public function parse(mixed $source = false): string
     {
-        // increment the parse count so it has unique identifiers
-        self::$instance += 1;
         if ($source === false) {
             $source = ob_get_clean();
         }
@@ -112,10 +108,10 @@ class TagEngine
     /**
      * Processes a tag by loading
      *
-     * @param \LordSimal\CustomHtmlElements\CustomTag|array $tag The tag to parse.
+     * @param \LordSimal\CustomHtmlElements\CustomTag $tag The tag to parse.
      * @return string|bool The content of the tag.
      */
-    private function renderTag(CustomTag|array $tag): bool|string
+    protected function renderTag(CustomTag $tag): bool|string
     {
         if ($tag->disabled ?? false) {
             return ''; // return empty for disabled tag
@@ -133,14 +129,12 @@ class TagEngine
                 }
             }
             if ($tag_data) {
-                $tag['cached'] = true;
+                $tag->cached = true;
 
                 return $tag_data;
             }
         }
-        if ($tag instanceof CustomTag) {
-            $tag_data = $tag->render();
-        }
+        $tag_data = $tag->render();
 
         if ($tag_data) {
             if ($this->options['sniff_for_nested_tags'] && $this->getLastTag($tag_data) !== false) {
@@ -162,47 +156,16 @@ class TagEngine
     /**
      * Loops and parses the found custom tags.
      *
-     * @param array $tags An array of found custom tag data.
-     * @return mixed|string|bool Returns false if there are no tags, string otherwise.
+     * @param array<\LordSimal\CustomHtmlElements\CustomTag> $tags An array of found custom tag data.
+     * @return string|bool Returns false if there are no tags, string otherwise.
      */
-    private function renderTags(array $tags): mixed
+    protected function renderTags(array $tags): string|bool
     {
         if ($tags) {
             $resultHtml = '';
             foreach ($tags as $tag) {
-                // Loop through Tags
-                if ($tag->attributes->delayed ?? false) {
-                    continue;
-                }
-                $regex = '!------@@%([0-9\-]+)%@@------!';
-                $has_buried = preg_match_all($regex, $tag->content, $info);
-                if ($has_buried > 0) {
-                    //Tag has Embedded Tag
-                    $containers = $info[0];
-                    $indexs = $info[1];
-                    $replacements = [];
-                    foreach ($indexs as $key2 => $index) {
-                        $index_parts = explode('-', $index);
-                        $tag_index = array_pop($index_parts);
-                        if (!$tags[$tag_index]->parsed) {
-                            if ($tags[$tag_index]->block) {
-                                $block = preg_replace('/ delayed="true"/', '', $tags[$tag_index]->block, 1);
-                                if ($tag->block) {
-                                    $tag->block = str_replace($containers[$key2], $block, $tag->block);
-                                }
-                                $tag->content = str_replace($containers[$key2], $block, $tag->content);
-                            }
-                        } else {
-                            $replacements[$key2] = $tags[$tag_index]->parsedcontent;
-                        }
-                    }
-                    $tag->innermarkers = $tag->innermarkers = $containers;
-                }
                 $body = $this->renderTag($tag);
-                if ($has_buried > 0 && isset($containers) && isset($replacements)) {
-                    $body = str_replace($containers, $replacements, $body);
-                }
-                $tag->parsedcontent = $body;
+                $tag->parsedContent = $body;
                 $tag->parsed = true;
                 $resultHtml .= $body;
             }
@@ -219,7 +182,7 @@ class TagEngine
      * @param string $subject
      * @return array|bool array of matched items or false if no match is present
      */
-    private function getLastTag(string $subject): bool|array
+    protected function getLastTag(string $subject): bool|array
     {
         $PregMatch = '/' . $this->searchReg . '/';
         if (!preg_match_all($PregMatch, $subject, $matches, PREG_OFFSET_CAPTURE)) {
@@ -233,7 +196,7 @@ class TagEngine
      * Searches and parses a source for custom tags.
      *
      * @param string $source The source to search for custom tags in.
-     * @return array An array of found tags.
+     * @return array<\LordSimal\CustomHtmlElements\CustomTag> An array of found tags.
      */
     public function processTags(string $source): array
     {
@@ -249,7 +212,7 @@ class TagEngine
             $eot = $this->getLastTag($currentSource);
 
             if (!$eot) { // No More Tags found
-                $tag = new SimpleTag($source, self::$instance, count($tags));
+                $tag = new SimpleTag($source);
                 $tags[] = $tag;
                 break;
             } else { // Tag found (start from last find)
@@ -272,17 +235,19 @@ class TagEngine
                 $tag_source = substr($currentSource, 0, $TagClose);
                 try {
                     $class = TagRegistry::getTag($tagName);
-                    $tag = new $class($tag_source, self::$instance, count($tags));
+                    $tag = new $class($tag_source);
                 } catch (TagNotFoundException) {
-                    $tag = new SimpleTag($tag_source, self::$instance, count($tags));
+                    $tag = new SimpleTag($tag_source);
                 }
 
                 $tags[] = $tag;
 
-                $source = substr($source, 0, $eot) . $tag->placeholder . substr($source, $eot + $TagClose); // Update Source for next request
+                // Update Source for next request
+                $source = substr($source, 0, $eot) . substr($source, $eot + $TagClose);
             }
         }
 
+        // Since we are parsing the source from the back to the front the array needs to be reversed to render it correctly
         return array_reverse($tags);
     }
 }

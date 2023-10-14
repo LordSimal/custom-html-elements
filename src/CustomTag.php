@@ -10,7 +10,7 @@ abstract class CustomTag
      *
      * @var string
      */
-    protected string $content = '';
+    public string $content = '';
 
     /**
      * Class/Object Name
@@ -20,18 +20,43 @@ abstract class CustomTag
     public static string $tag = '';
 
     /**
-     * Used to represent Item
-     *
-     * @var string
-     */
-    protected string $placeholder = '';
-
-    /**
      * Extensible Items
      *
      * @var object|array
      */
-    protected array|object $attributes = [];
+    public array|object $attributes = [];
+
+    /**
+     * @var bool
+     */
+    public bool $parsed = false;
+
+    /**
+     * @var bool
+     */
+    public bool $cached = false;
+
+    /**
+     * @var bool
+     */
+    public bool $disabled = false;
+
+    /**
+     * @var string
+     */
+    public string $parsedContent = '';
+
+    /**
+     * @var array|string
+     */
+    public string|array $innerMarkers = '';
+
+    /**
+     * Regex Search Pattern
+     *
+     * @var string
+     */
+    protected string $tagSearch = '';
 
     /**
      * Defines if tag is <tag /> format
@@ -45,48 +70,21 @@ abstract class CustomTag
      *
      * @var string
      */
-    protected string $tagclose = '>';
-
-    /**
-     * @var bool
-     */
-    protected bool $parsed = false;
-
-    /**
-     * @var string
-     */
-    protected string $parsedcontent = '';
-
-    /**
-     * @var array|string
-     */
-    protected string|array $innermarkers = '';
-
-    /**
-     * Regex Search Pattern
-     *
-     * @var string
-     */
-    protected string $tagSearch = '';
+    protected string $tagClose = '>';
 
     /**
      * Constructor
      *
      * @param string $block The source to parse
-     * @param int $instance The instance id of the TagEngine
-     * @param int $index The amount of tags
      */
     public function __construct(
-        protected string $block,
-        int $instance,
-        int $index
+        public string $block
     ) {
-        $this->placeholder = '------@@%' . $instance . '-' . $index . '%@@------';
         if (str_ends_with($this->block, '/>')) {
             $this->isSelfClosing = true;
         }
         $tag = static::$tag;
-        $this->tagSearch = "/<($tag)\s*([^$this->tagclose]*)/";
+        $this->tagSearch = "/<($tag)\s*([^$this->tagClose]*)/";
         $this->build($this->block);
     }
 
@@ -142,7 +140,7 @@ abstract class CustomTag
      */
     public function __set(mixed $var, mixed $val): void
     {
-        if (in_array($var, ['parsed','parsedcontent','block','content','placeholder','innermarkers'])) {
+        if (in_array($var, ['parsed','parsedcontent','block','content','innermarkers'])) {
             $this->$var = $val ?? null;
         }
     }

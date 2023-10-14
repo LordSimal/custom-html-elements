@@ -30,9 +30,9 @@ class TagEngineTest extends TestCase
             RecursiveIteratorIterator::CHILD_FIRST
         );
 
-        foreach ($files as $fileinfo) {
-            $todo = ($fileinfo->isDir() ? 'rmdir' : 'unlink');
-            $todo($fileinfo->getRealPath());
+        foreach ($files as $fileInfo) {
+            $todo = ($fileInfo->isDir() ? 'rmdir' : 'unlink');
+            $todo($fileInfo->getRealPath());
         }
 
         rmdir(self::CACHE_DIR);
@@ -171,6 +171,29 @@ HTML;
     }
 
     /**
+     * Test nested tags
+     *
+     * @return void
+     */
+    public function testTagsNested(): void
+    {
+        $element = '<c-github><c-github></c-github></c-github>';
+        $tagEngine = new TagEngine([
+            'tag_directories' => [
+                __DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR,
+                __DIR__ . DIRECTORY_SEPARATOR . 'plugins' . DIRECTORY_SEPARATOR,
+            ],
+        ]);
+        $result = $tagEngine->parse($element);
+        $expected = <<<HTML
+			This is a render from a plugin tag
+            			This is a render from a plugin tag
+            
+HTML;
+        $this->assertSame($expected, $result);
+    }
+
+    /**
      * Make sure nested tags don't get rendered by default
      *
      * @return void
@@ -237,6 +260,9 @@ HTML;
             
 HTML;
         $this->assertSame($expected, $result);
+
+        $result = $tagEngine->parse($element);
+        $this->assertSame($expected, $result);
     }
 
     /**
@@ -280,6 +306,38 @@ HTML;
 				allowfullscreen>
 			</iframe><div>Test</div>
 HTML;
+        $this->assertSame($expected, $result);
+    }
+
+    /**
+     * Test disabled tags
+     *
+     * @return void
+     */
+    public function testDisabledTag(): void
+    {
+        $element = '<c-disabled />';
+        $tagEngine = new TagEngine([
+            'tag_directories' => [__DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR],
+        ]);
+        $result = $tagEngine->parse($element);
+        $expected = '';
+        $this->assertSame($expected, $result);
+    }
+
+    /**
+     * Test no custom Tag
+     *
+     * @return void
+     */
+    public function testNoCustomTag(): void
+    {
+        $element = '<div>This is a Test</div>';
+        $tagEngine = new TagEngine([
+            'tag_directories' => [__DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR],
+        ]);
+        $result = $tagEngine->parse($element);
+        $expected = '<div>This is a Test</div>';
         $this->assertSame($expected, $result);
     }
 }
