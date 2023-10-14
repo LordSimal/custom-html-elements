@@ -84,7 +84,6 @@ abstract class CustomTag
         $this->placeholder = '------@@%' . $instance . '-' . $index . '%@@------';
         if (str_ends_with($this->block, '/>')) {
             $this->isSelfClosing = true;
-            //$this->tagclose = "\/>";
         }
         $tag = static::$tag;
         $this->tagSearch = "/<($tag)\s*([^$this->tagclose]*)/";

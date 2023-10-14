@@ -3,14 +3,41 @@ declare(strict_types=1);
 
 namespace LordSimal\CustomHtmlElements\Test;
 
+use FilesystemIterator;
 use LordSimal\CustomHtmlElements\TagEngine;
 use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 
 /**
  * @see TagEngine
  */
 class TagEngineTest extends TestCase
 {
+    protected const CACHE_DIR = __DIR__ . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR;
+
+    protected function setUp(): void
+    {
+        if (!file_exists(self::CACHE_DIR)) {
+            mkdir(self::CACHE_DIR);
+        }
+    }
+
+    protected function tearDown(): void
+    {
+        $files = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator(self::CACHE_DIR, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST
+        );
+
+        foreach ($files as $fileinfo) {
+            $todo = ($fileinfo->isDir() ? 'rmdir' : 'unlink');
+            $todo($fileinfo->getRealPath());
+        }
+
+        rmdir(self::CACHE_DIR);
+    }
+
     /**
      * Test a tab with a simple attribute
      *
@@ -157,6 +184,75 @@ HTML;
         $expected = <<<HTML
 			This is a render from a plugin tag
             
+HTML;
+        $this->assertSame($expected, $result);
+    }
+
+    /**
+     * Test that sub-tags will trigger cache correctly
+     *
+     * @return void
+     */
+    public function testNestedContentRendersWithCache(): void
+    {
+        $element = '<c-nested />';
+        $tagEngine = new TagEngine([
+            'tag_directories' => [
+                __DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR,
+                __DIR__ . DIRECTORY_SEPARATOR . 'plugins' . DIRECTORY_SEPARATOR,
+            ],
+            'sniff_for_nested_tags' => true,
+            'cache_tags' => true,
+            'cache_directory' => self::CACHE_DIR,
+        ]);
+        $result = $tagEngine->parse($element);
+        $expected = <<<HTML
+			This is a render from a plugin tag
+            
+HTML;
+        $this->assertSame($expected, $result);
+    }
+
+    /**
+     * Test tag variant and normal HTML
+     *
+     * @return void
+     */
+    public function testTagWithAttributeAndNormalHTML(): void
+    {
+        $element = '<c-youtube src="RLdsCL4RDf8"></c-youtube><div>Test</div>';
+        $tagEngine = new TagEngine([
+            'tag_directories' => [__DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR],
+        ]);
+        $result = $tagEngine->parse($element);
+        $expected = <<<HTML
+			<iframe width="560" height="315" 
+				src="https://www.youtube.com/embed/RLdsCL4RDf8" 
+				allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+				allowfullscreen>
+			</iframe><div>Test</div>
+HTML;
+        $this->assertSame($expected, $result);
+    }
+
+    /**
+     * Test self-closing tag variant and normal HTML
+     *
+     * @return void
+     */
+    public function testTagWithAttributeSelfClosingAndNormalHTML(): void
+    {
+        $element = '<c-youtube src="RLdsCL4RDf8" /><div>Test</div>';
+        $tagEngine = new TagEngine([
+            'tag_directories' => [__DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR],
+        ]);
+        $result = $tagEngine->parse($element);
+        $expected = <<<HTML
+			<iframe width="560" height="315" 
+				src="https://www.youtube.com/embed/RLdsCL4RDf8" 
+				allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+				allowfullscreen>
+			</iframe><div>Test</div>
 HTML;
         $this->assertSame($expected, $result);
     }

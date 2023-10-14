@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace LordSimal\CustomHtmlElements;
 
+use LordSimal\CustomHtmlElements\Error\TagNotFoundException;
 use Spatie\StructureDiscoverer\Discover;
 
 class TagEngine
@@ -62,6 +63,8 @@ class TagEngine
                     $searchRegex .= '\b' . $class::$tag . '\b';
                     TagRegistry::register($class);
                 }
+                // Also catch all other HTML elements
+                $searchRegex .= '|\b.*>\b';
             }
             $this->searchReg = "<($searchRegex)";
         }
@@ -125,7 +128,7 @@ class TagEngine
                 $tag_data = call_user_func_array([$this->options['custom_cache_tag_class'], 'getCache'], [$tag]);
             } else {
                 $cache_file = $this->options['cache_directory'] . md5(serialize($tag));
-                if (is_file($cache_file) === true) {
+                if (is_file($cache_file)) {
                     $tag_data = file_get_contents($cache_file);
                 }
             }
@@ -148,7 +151,7 @@ class TagEngine
                 if ($this->options['custom_cache_tag_class'] !== false) {
                     call_user_func_array([$this->options['custom_cache_tag_class'], 'cache'], [$tag, $tag_data]);
                 } else {
-                    file_put_contents($this->options['cache_directory'] . md5(serialize($tag)), $tag_data, LOCK_EX);
+                    file_put_contents($this->options['cache_directory'] . md5(serialize($tag)), $tag_data);
                 }
             }
         }
@@ -165,7 +168,8 @@ class TagEngine
     private function renderTags(array $tags): mixed
     {
         if ($tags) {
-            foreach ($tags as $key => &$tag) {
+            $resultHtml = '';
+            foreach ($tags as $tag) {
                 // Loop through Tags
                 if ($tag->attributes->delayed ?? false) {
                     continue;
@@ -200,9 +204,10 @@ class TagEngine
                 }
                 $tag->parsedcontent = $body;
                 $tag->parsed = true;
+                $resultHtml .= $body;
             }
 
-            return $tags[$key]->parsedcontent;
+            return $resultHtml;
         }
 
         return false;
@@ -229,7 +234,6 @@ class TagEngine
      *
      * @param string $source The source to search for custom tags in.
      * @return array An array of found tags.
-     * @throws \LordSimal\CustomHtmlElements\TagNotFoundException
      */
     public function processTags(string $source): array
     {
@@ -249,7 +253,7 @@ class TagEngine
                 $tags[] = $tag;
                 break;
             } else { // Tag found (start from last find)
-                $tagName = str_replace('<', '', $eot[0]);
+                $tagName = str_replace(['<','>'], '', $eot[0]);
                 $eot = $eot[1];
                 $closer = "</$tagName>";
                 $currentSource = substr($source, $eot); // HTML from Last occurrence till end or Last processed Tag
@@ -266,18 +270,19 @@ class TagEngine
                 }
 
                 $tag_source = substr($currentSource, 0, $TagClose);
-                $Class = TagRegistry::getTag($tagName);
-                if (!class_exists($Class)) {
+                try {
+                    $class = TagRegistry::getTag($tagName);
+                    $tag = new $class($tag_source, self::$instance, count($tags));
+                } catch (TagNotFoundException) {
                     $tag = new SimpleTag($tag_source, self::$instance, count($tags));
-                } else {
-                    $tag = new $Class($tag_source, self::$instance, count($tags));
                 }
+
                 $tags[] = $tag;
 
                 $source = substr($source, 0, $eot) . $tag->placeholder . substr($source, $eot + $TagClose); // Update Source for next request
             }
         }
 
-        return $tags;
+        return array_reverse($tags);
     }
 }

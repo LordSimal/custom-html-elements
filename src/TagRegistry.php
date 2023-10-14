@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace LordSimal\CustomHtmlElements;
 
+use LordSimal\CustomHtmlElements\Error\TagNotFoundException;
+
 class TagRegistry
 {
     protected static array $listOfTags = [];
@@ -27,7 +29,7 @@ class TagRegistry
     /**
      * @param string $tag
      * @return string
-     * @throws \LordSimal\CustomHtmlElements\TagNotFoundException
+     * @throws \LordSimal\CustomHtmlElements\Error\TagNotFoundException
      */
     public static function getTag(string $tag): string
     {
