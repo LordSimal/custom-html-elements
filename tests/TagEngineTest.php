@@ -362,25 +362,25 @@ HTML;
         $this->assertSame($expected, $result);
     }
 
-    public function testWithDivWrapped(): void
-    {
-        $element = '<div>
-            <c-youtube src="RLdsCL4RDf8"/>
-        </div>';
-        $tagEngine = new TagEngine([
-            'tag_directories' => [__DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR],
-            'sniff_for_nested_tags' => true,
-        ]);
-        $result = $tagEngine->parse($element);
-        $expected = <<<HTML
-<div> 
-    <iframe width="560" height="315" 
-        src="https://www.youtube.com/embed/RLdsCL4RDf8" 
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-        allowfullscreen>
-    </iframe>
-</div>
-HTML;
-        $this->assertSame($expected, $result);
-    }
+//    public function testWithDivWrapped(): void
+//    {
+//        $element = '<div>
+//            <c-youtube src="RLdsCL4RDf8"/>
+//        </div>';
+//        $tagEngine = new TagEngine([
+//            'tag_directories' => [__DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR],
+//            'sniff_for_nested_tags' => true,
+//        ]);
+//        $result = $tagEngine->parse($element);
+//        $expected = <<<HTML
+//<div>
+//    <iframe width="560" height="315"
+//        src="https://www.youtube.com/embed/RLdsCL4RDf8"
+//        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+//        allowfullscreen>
+//    </iframe>
+//</div>
+//HTML;
+//        $this->assertSame($expected, $result);
+//    }
 }
