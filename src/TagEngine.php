@@ -3,7 +3,11 @@ declare(strict_types=1);
 
 namespace LordSimal\CustomHtmlElements;
 
+use DOMDocumentType;
+use DOMNode;
+use DOMText;
 use LordSimal\CustomHtmlElements\Error\TagNotFoundException;
+use Masterminds\HTML5;
 use Spatie\StructureDiscoverer\Discover;
 
 class TagEngine
@@ -20,8 +24,6 @@ class TagEngine
         'cache_directory' => false, // Location for cached tags
         'custom_cache_tag_class' => false, // override to manipulate tag cache (include methods getCache and cache)
     ];
-
-    protected string $searchReg = '';
 
     /**
      * Initialize TagEngine
@@ -49,22 +51,14 @@ class TagEngine
         }
 
         if ($this->options['tag_directories']) {
-            $searchRegex = '';
             foreach ($this->options['tag_directories'] as $tag_directory) {
                 $classes = Discover::in($tag_directory)->classes()
                     ->extending(CustomTag::class)->get();
                 /** @var \LordSimal\CustomHtmlElements\CustomTag|string $class */
                 foreach ($classes as $class) {
-                    if ($searchRegex != '') {
-                        $searchRegex .= '|';
-                    }
-                    $searchRegex .= '\b' . $class::$tag . '\b';
                     TagRegistry::register($class);
                 }
-                // Also catch all other HTML elements
-                $searchRegex .= '|\b\w*[>\s]\b';
             }
-            $this->searchReg = "<($searchRegex)";
         }
 
         if ($this->options['cache_tags']) {
@@ -137,7 +131,7 @@ class TagEngine
         $tag_data = $tag->render();
 
         if ($tag_data) {
-            if ($this->options['sniff_for_nested_tags'] && $this->getLastTag($tag_data) !== false) {
+            if ($this->options['sniff_for_nested_tags']) {
                 $tag_data = $this->parse(trim($tag_data));
             }
 
@@ -164,32 +158,18 @@ class TagEngine
         if ($tags) {
             $resultHtml = '';
             foreach ($tags as $tag) {
-                $body = $this->renderTag($tag);
-                $tag->parsedContent = $body;
-                $tag->parsed = true;
-                $resultHtml .= $body;
+                if (!$tag->parsed) {
+                    $body = $this->renderTag($tag);
+                    $tag->parsedContent = $body;
+                    $tag->parsed = true;
+                }
+                $resultHtml .= $tag->parsedContent;
             }
 
             return $resultHtml;
         }
 
         return false;
-    }
-
-    /**
-     * Utility Method to search for last allowable Tag not already processed
-     *
-     * @param string $subject
-     * @return array|bool array of matched items or false if no match is present
-     */
-    protected function getLastTag(string $subject): bool|array
-    {
-        $PregMatch = '/' . $this->searchReg . '/';
-        if (!preg_match_all($PregMatch, $subject, $matches, PREG_OFFSET_CAPTURE)) {
-            return false;
-        }
-
-        return $matches[0][count($matches[0]) - 1];
     }
 
     /**
@@ -202,52 +182,60 @@ class TagEngine
     {
         $tags = [];
 
-        // Sets Open Pos to end of HTML ($source)
-        $eot = strlen($source);
+        $html5 = new HTML5();
+        $dom = $html5->loadHTML($source);
 
-        while ($eot && $eot > 0) {
-            // Remaining HTML (moving Up)
-            $currentSource = substr($source, 0, $eot);
-            // Postion of "Opener"
-            $eot = $this->getLastTag($currentSource);
+        $this->recursiveParse($dom, $tags);
 
-            if (!$eot) { // No More Tags found
-                $tag = new SimpleTag($source);
-                $tags[] = $tag;
-                break;
-            } else { // Tag found (start from last find)
-                $tagName = str_replace(['<','>'], '', $eot[0]);
-                $eot = $eot[1];
-                $closer = "</$tagName>";
-                $currentSource = substr($source, $eot); // HTML from Last occurrence till end or Last processed Tag
-                $nextDOM = strpos($currentSource, '<', 1); // Start of Next DOM Tag
-                $nextCloseTag = strpos($currentSource, '/>'); // Close Bracket Loc
+        return $tags;
+    }
 
-                if ($nextCloseTag !== false && ($nextCloseTag < $nextDOM || ($nextCloseTag && $nextDOM === false))) {
-                    // Closing DOM is before the next DOM element (indicates <tag /> format)
-                    $TagClose = $nextCloseTag + 2; // Update TagClose to include />
-                } else {
-                    // Traditional <tag></tag> format
-                    $TagClose_begin = strpos($currentSource, $closer);
-                    $TagClose = strpos($currentSource, '>', $TagClose_begin) + 1;
+    /**
+     * @param \DOMNode $domDocument
+     * @param array $tags
+     * @return void
+     */
+    protected function recursiveParse(DOMNode $domDocument, array &$tags): void
+    {
+        if ($domDocument->hasChildNodes()) {
+            if (!empty($domDocument->tagName) && TagRegistry::hasTag($domDocument->tagName)) {
+                $tags[] = $this->getTagFromHtml($domDocument);
+            } else {
+                foreach ($domDocument->childNodes as $childNode) {
+                    $this->recursiveParse($childNode, $tags);
                 }
-
-                $tag_source = substr($currentSource, 0, $TagClose);
-                try {
-                    $class = TagRegistry::getTag($tagName);
-                    $tag = new $class($tag_source);
-                } catch (TagNotFoundException) {
-                    $tag = new SimpleTag($tag_source);
-                }
-
-                $tags[] = $tag;
-
-                // Update Source for next request
-                $source = substr($source, 0, $eot) . substr($source, $eot + $TagClose);
             }
+        } else {
+            if ($domDocument instanceof DOMText) {
+                $domDocument = $domDocument->parentNode;
+            } elseif ($domDocument instanceof DOMDocumentType && $domDocument->name === 'html') {
+                // Don't add <!DOCTYPE html>
+                return;
+            }
+
+            $tag = $this->getTagFromHtml($domDocument);
+            $tags[] = $tag;
+        }
+    }
+
+    /**
+     * @param \DOMNode $DOMNode
+     * @return \LordSimal\CustomHtmlElements\CustomTag
+     */
+    protected function getTagFromHtml(DOMNode $DOMNode): CustomTag
+    {
+        $html = $DOMNode->ownerDocument->saveXML($DOMNode) ?: '';
+        if (!empty($DOMNode->tagName)) {
+            try {
+                $class = TagRegistry::getTag($DOMNode->tagName);
+                $tag = new $class($html);
+            } catch (TagNotFoundException) {
+                $tag = new SimpleTag($html);
+            }
+        } else {
+            $tag = new SimpleTag($html);
         }
 
-        // Since we are parsing the source from the back to the front the array needs to be reversed to render it correctly
-        return array_reverse($tags);
+        return $tag;
     }
 }

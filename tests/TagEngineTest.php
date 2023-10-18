@@ -187,8 +187,7 @@ HTML;
         $result = $tagEngine->parse($element);
         $expected = <<<HTML
 			This is a render from a plugin tag
-            			This is a render from a plugin tag
-            
+            <c-github/>
 HTML;
         $this->assertSame($expected, $result);
     }
@@ -231,8 +230,7 @@ HTML;
         ]);
         $result = $tagEngine->parse($element);
         $expected = <<<HTML
-			This is a render from a plugin tag
-            
+This is a render from a plugin tag
 HTML;
         $this->assertSame($expected, $result);
     }
@@ -256,8 +254,7 @@ HTML;
         ]);
         $result = $tagEngine->parse($element);
         $expected = <<<HTML
-			This is a render from a plugin tag
-            
+This is a render from a plugin tag
 HTML;
         $this->assertSame($expected, $result);
 
@@ -294,7 +291,7 @@ HTML;
      */
     public function testTagWithAttributeSelfClosingAndNormalHTML(): void
     {
-        $element = '<c-youtube src="RLdsCL4RDf8" /><div>Test</div><input type="text" />';
+        $element = '<c-youtube src="RLdsCL4RDf8" /><div>Test</div><input type="text"/>';
         $tagEngine = new TagEngine([
             'tag_directories' => [__DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR],
         ]);
@@ -304,7 +301,7 @@ HTML;
 				src="https://www.youtube.com/embed/RLdsCL4RDf8" 
 				allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
 				allowfullscreen>
-			</iframe><div>Test</div><input type="text" />
+			</iframe><div>Test</div><input type="text"/>
 HTML;
         $this->assertSame($expected, $result);
     }
@@ -361,6 +358,28 @@ HTML;
         $expected = <<<HTML
 			This is a render from a plugin tag
             
+HTML;
+        $this->assertSame($expected, $result);
+    }
+
+    public function testWithDivWrapped(): void
+    {
+        $element = '<div>
+            <c-youtube src="RLdsCL4RDf8"/>
+        </div>';
+        $tagEngine = new TagEngine([
+            'tag_directories' => [__DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR],
+            'sniff_for_nested_tags' => true,
+        ]);
+        $result = $tagEngine->parse($element);
+        $expected = <<<HTML
+<div> 
+    <iframe width="560" height="315" 
+        src="https://www.youtube.com/embed/RLdsCL4RDf8" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen>
+    </iframe>
+</div>
 HTML;
         $this->assertSame($expected, $result);
     }

@@ -39,4 +39,13 @@ class TagRegistry
 
         throw new TagNotFoundException(sprintf('Tag %s was not found.', $tag));
     }
+
+    /**
+     * @param string $tag
+     * @return bool
+     */
+    public static function hasTag(string $tag): bool
+    {
+        return array_key_exists($tag, self::$listOfTags);
+    }
 }
