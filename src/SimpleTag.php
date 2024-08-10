@@ -12,9 +12,4 @@ class SimpleTag extends CustomTag
     {
         return "<{$this->tag}>{$this->innerContent}</{$this->tag}>";
     }
-
-    public function setTag(string $tag): void
-    {
-        $this->tag = $tag;
-    }
 }
