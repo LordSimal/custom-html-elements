@@ -3,47 +3,24 @@ declare(strict_types=1);
 
 namespace LordSimal\CustomHtmlElements\Test;
 
-use FilesystemIterator;
 use LordSimal\CustomHtmlElements\TagEngine;
 use PHPUnit\Framework\TestCase;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
 
 /**
  * @see \LordSimal\CustomHtmlElements\TagEngine
  */
 class TagEngineTest extends TestCase
 {
-    protected const CACHE_DIR = __DIR__ . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR;
-
     protected TagEngine $tagEngine;
 
     protected function setUp(): void
     {
-        if (!file_exists(self::CACHE_DIR)) {
-            mkdir(self::CACHE_DIR);
-        }
         $this->tagEngine = new TagEngine([
             'tag_directories' => [
                 __DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR,
                 __DIR__ . DIRECTORY_SEPARATOR . 'plugins' . DIRECTORY_SEPARATOR,
             ],
         ]);
-    }
-
-    protected function tearDown(): void
-    {
-        $files = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator(self::CACHE_DIR, FilesystemIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::CHILD_FIRST
-        );
-
-        foreach ($files as $fileInfo) {
-            $todo = ($fileInfo->isDir() ? 'rmdir' : 'unlink');
-            $todo($fileInfo->getRealPath());
-        }
-
-        rmdir(self::CACHE_DIR);
     }
 
     /**

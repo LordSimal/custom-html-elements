@@ -16,9 +16,6 @@ class TagEngine
     protected array $options = [
         'component_prefix' => 'c', // Prefix for custom tags
         'tag_directories' => [], // Location for tag extensions
-        'cache_tags' => false, // cache for improved performance (requires cache_directory)
-        'cache_directory' => false, // Location for cached tags
-        'custom_cache_tag_class' => false, // override to manipulate tag cache (include methods getCache and cache)
     ];
 
     /**
@@ -48,7 +45,7 @@ class TagEngine
         }
         $prefix = $this->options['component_prefix'] ?? 'c';
         $this->regex = sprintf($this->regex, $prefix, $prefix, $prefix);
-        $this->setDefaults();
+        $this->registerTags();
     }
 
     /**
@@ -56,12 +53,8 @@ class TagEngine
      *
      * @return void
      */
-    public function setDefaults(): void
+    protected function registerTags(): void
     {
-        if ($this->options['custom_cache_tag_class'] && !class_exists($this->options['custom_cache_tag_class'])) {
-            $this->options['cache_tags'] = false;
-        }
-
         if ($this->options['tag_directories']) {
             foreach ($this->options['tag_directories'] as $tag_directory) {
                 $classes = Discover::in($tag_directory)->classes()
@@ -69,23 +62,6 @@ class TagEngine
                 /** @var \LordSimal\CustomHtmlElements\CustomTag|string $class */
                 foreach ($classes as $class) {
                     TagRegistry::register($class);
-                }
-            }
-        }
-
-        if ($this->options['cache_tags']) {
-            if (!$this->options['custom_cache_tag_class']) {
-                if (!$this->options['cache_directory']) {
-                    $path = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR;
-                    $this->options['cache_directory'] = $path;
-                } else {
-                    if (!is_dir($this->options['cache_directory']) || !is_writable($this->options['cache_directory'])) {
-                        $this->options['cache_tags'] = false;
-                    }
-                }
-            } else {
-                if (!class_exists($this->options['custom_cache_tag_class'])) {
-                    $this->options['cache_tags'] = false;
                 }
             }
         }
@@ -119,7 +95,6 @@ class TagEngine
         $attributesString = $matches[2] ?: $matches[5] ?? ''; // Attributes for both self-closing and normal tags
         $content = $matches[3] ?? ''; // Inner content
 
-        // Parse attributes
         $attributes = $this->parseAttributes($attributesString);
 
         // If the component has content, process it (handles nested components)
@@ -180,12 +155,11 @@ class TagEngine
             if ($tag->disabled) {
                 return '';
             }
-
-            return $tag->render();
         } catch (TagNotFoundException) {
-            // do something?
+            $tag = new SimpleTag($attributes, $innerContent);
+            $tag::$tag = $componentName;
         }
 
-        return 'something went wrong';
+        return $tag->render();
     }
 }
