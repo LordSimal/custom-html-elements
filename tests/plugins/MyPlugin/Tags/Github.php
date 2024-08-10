@@ -13,7 +13,7 @@ class Github extends CustomTag
     {
         return <<< HTML
 			This is a render from a plugin tag
-            $this->content
+            $this->innerContent
 HTML;
     }
 }

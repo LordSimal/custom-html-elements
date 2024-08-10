@@ -10,6 +10,6 @@ class SimpleTag extends CustomTag
      */
     public function render(): string
     {
-        return $this->block;
+        return "<{$this->tag}>{$this->innerContent}</{$this->tag}>";
     }
 }
