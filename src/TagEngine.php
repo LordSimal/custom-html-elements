@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace LordSimal\CustomHtmlElements;
 
+use Exception;
 use LordSimal\CustomHtmlElements\Error\TagNotFoundException;
 use Spatie\StructureDiscoverer\Discover;
 
@@ -16,6 +17,8 @@ class TagEngine
     protected array $options = [
         'component_prefix' => 'c', // Prefix for custom tags
         'tag_directories' => [], // Location for tag extensions
+        'enable_cache' => false, // Enable caching
+        'cache_dir' => '', // Location for cache files
     ];
 
     /**
@@ -46,6 +49,18 @@ class TagEngine
         $prefix = $this->options['component_prefix'] ?? 'c';
         $this->regex = sprintf($this->regex, $prefix, $prefix, $prefix);
         $this->registerTags();
+
+        if ($this->options['enable_cache']) {
+            if (empty($this->options['cache_dir'])) {
+                throw new Exception('Please set a `cache_dir` config');
+            }
+            if (!is_dir($this->options['cache_dir'])) {
+                throw new Exception('Cache directory does not exist');
+            }
+            if (!is_writable($this->options['cache_dir'])) {
+                throw new Exception('Cache directory is not writable');
+            }
+        }
     }
 
     /**
@@ -148,6 +163,14 @@ class TagEngine
      */
     protected function renderComponent(string $componentName, array $attributes, string $innerContent = ''): string
     {
+        if ($this->options['enable_cache']) {
+            $cacheKey = md5($componentName . serialize($attributes) . $innerContent);
+            $cacheFile = $this->options['cache_dir'] . DIRECTORY_SEPARATOR . $cacheKey . '.html';
+            if (file_exists($cacheFile)) {
+                return file_get_contents($cacheFile);
+            }
+        }
+
         try {
             $class = TagRegistry::getTag(sprintf('%s-%s', $this->options['component_prefix'], $componentName));
             $tag = new $class($attributes, $innerContent);
@@ -160,6 +183,12 @@ class TagEngine
             $tag::$tag = $componentName;
         }
 
-        return $tag->render();
+        $html = $tag->render();
+
+        if ($this->options['enable_cache']) {
+            file_put_contents($cacheFile, $html);
+        }
+
+        return $html;
     }
 }
