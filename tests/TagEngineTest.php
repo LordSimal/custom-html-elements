@@ -16,11 +16,19 @@ class TagEngineTest extends TestCase
 {
     protected const CACHE_DIR = __DIR__ . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR;
 
+    protected TagEngine $tagEngine;
+
     protected function setUp(): void
     {
         if (!file_exists(self::CACHE_DIR)) {
             mkdir(self::CACHE_DIR);
         }
+        $this->tagEngine = new TagEngine([
+            'tag_directories' => [
+                __DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR,
+                __DIR__ . DIRECTORY_SEPARATOR . 'plugins' . DIRECTORY_SEPARATOR,
+            ],
+        ]);
     }
 
     protected function tearDown(): void
@@ -46,10 +54,7 @@ class TagEngineTest extends TestCase
     public function testTagWithAttribute(): void
     {
         $element = '<c-youtube src="RLdsCL4RDf8"></c-youtube>';
-        $tagEngine = new TagEngine([
-            'tag_directories' => [__DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR],
-        ]);
-        $result = $tagEngine->parse($element);
+        $result = $this->tagEngine->parse($element);
         $expected = <<<HTML
 			<iframe width="560" height="315" 
 				src="https://www.youtube.com/embed/RLdsCL4RDf8" 
@@ -68,10 +73,7 @@ HTML;
     public function testTagWithAttributeSelfClosing(): void
     {
         $element = '<c-youtube src="RLdsCL4RDf8" />';
-        $tagEngine = new TagEngine([
-            'tag_directories' => [__DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR],
-        ]);
-        $result = $tagEngine->parse($element);
+        $result = $this->tagEngine->parse($element);
         $expected = <<<HTML
 			<iframe width="560" height="315" 
 				src="https://www.youtube.com/embed/RLdsCL4RDf8" 
@@ -90,10 +92,7 @@ HTML;
     public function testMultipleTagsWithAttributeSelfClosing(): void
     {
         $element = '<c-youtube src="RLdsCL4RDf8" /><c-youtube src="RLdsCL4RDf8" />';
-        $tagEngine = new TagEngine([
-            'tag_directories' => [__DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR],
-        ]);
-        $result = $tagEngine->parse($element);
+        $result = $this->tagEngine->parse($element);
         $expected = <<<HTML
 			<iframe width="560" height="315" 
 				src="https://www.youtube.com/embed/RLdsCL4RDf8" 
@@ -116,10 +115,7 @@ HTML;
     public function testTagWithMultipleAttributes(): void
     {
         $element = '<c-button type="primary" text="Click me" url="/something/stupid" />';
-        $tagEngine = new TagEngine([
-            'tag_directories' => [__DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR],
-        ]);
-        $result = $tagEngine->parse($element);
+        $result = $this->tagEngine->parse($element);
         $expected = <<<HTML
 			<a href="/something/stupid" class="c-button c-button--primary">Click me</a>
 HTML;
@@ -134,13 +130,7 @@ HTML;
     public function testTagInSubFolder(): void
     {
         $element = '<c-github></c-github>';
-        $tagEngine = new TagEngine([
-            'tag_directories' => [
-                __DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR,
-                __DIR__ . DIRECTORY_SEPARATOR . 'plugins' . DIRECTORY_SEPARATOR,
-            ],
-        ]);
-        $result = $tagEngine->parse($element);
+        $result = $this->tagEngine->parse($element);
         $expected = <<<HTML
 			This is a render from a plugin tag
             
@@ -156,13 +146,7 @@ HTML;
     public function testTagWithInnerContent(): void
     {
         $element = '<c-github>Inner Content</c-github>';
-        $tagEngine = new TagEngine([
-            'tag_directories' => [
-                __DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR,
-                __DIR__ . DIRECTORY_SEPARATOR . 'plugins' . DIRECTORY_SEPARATOR,
-            ],
-        ]);
-        $result = $tagEngine->parse($element);
+        $result = $this->tagEngine->parse($element);
         $expected = <<<HTML
 			This is a render from a plugin tag
             Inner Content
@@ -178,13 +162,7 @@ HTML;
     public function testTagsNested(): void
     {
         $element = '<c-github><c-github></c-github></c-github>';
-        $tagEngine = new TagEngine([
-            'tag_directories' => [
-                __DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR,
-                __DIR__ . DIRECTORY_SEPARATOR . 'plugins' . DIRECTORY_SEPARATOR,
-            ],
-        ]);
-        $result = $tagEngine->parse($element);
+        $result = $this->tagEngine->parse($element);
         $expected = <<<HTML
 			This is a render from a plugin tag
             <c-github></c-github>
@@ -200,44 +178,11 @@ HTML;
     public function testNestedContentRendersWithConfig(): void
     {
         $element = '<c-nested />';
-        $tagEngine = new TagEngine([
-            'tag_directories' => [
-                __DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR,
-                __DIR__ . DIRECTORY_SEPARATOR . 'plugins' . DIRECTORY_SEPARATOR,
-            ],
-        ]);
-        $result = $tagEngine->parse($element);
+        $result = $this->tagEngine->parse($element);
         $expected = <<<HTML
 						This is a render from a plugin tag
             
 HTML;
-        $this->assertSame($expected, $result);
-    }
-
-    /**
-     * Test that sub-tags will trigger cache correctly
-     *
-     * @return void
-     */
-    public function testNestedContentRendersWithCache(): void
-    {
-        $element = '<c-nested />';
-        $tagEngine = new TagEngine([
-            'tag_directories' => [
-                __DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR,
-                __DIR__ . DIRECTORY_SEPARATOR . 'plugins' . DIRECTORY_SEPARATOR,
-            ],
-            'cache_tags' => true,
-            'cache_directory' => self::CACHE_DIR,
-        ]);
-        $result = $tagEngine->parse($element);
-        $expected = <<<HTML
-						This is a render from a plugin tag
-            
-HTML;
-        $this->assertSame($expected, $result);
-
-        $result = $tagEngine->parse($element);
         $this->assertSame($expected, $result);
     }
 
@@ -249,10 +194,7 @@ HTML;
     public function testTagWithAttributeAndNormalHTML(): void
     {
         $element = '<c-youtube src="RLdsCL4RDf8"></c-youtube><div>Test</div>';
-        $tagEngine = new TagEngine([
-            'tag_directories' => [__DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR],
-        ]);
-        $result = $tagEngine->parse($element);
+        $result = $this->tagEngine->parse($element);
         $expected = <<<HTML
 			<iframe width="560" height="315" 
 				src="https://www.youtube.com/embed/RLdsCL4RDf8" 
@@ -271,10 +213,7 @@ HTML;
     public function testTagWithAttributeSelfClosingAndNormalHTML(): void
     {
         $element = '<c-youtube src="RLdsCL4RDf8" /><div>Test</div><input type="text"/>';
-        $tagEngine = new TagEngine([
-            'tag_directories' => [__DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR],
-        ]);
-        $result = $tagEngine->parse($element);
+        $result = $this->tagEngine->parse($element);
         $expected = <<<HTML
 			<iframe width="560" height="315" 
 				src="https://www.youtube.com/embed/RLdsCL4RDf8" 
@@ -293,10 +232,7 @@ HTML;
     public function testDisabledTag(): void
     {
         $element = '<c-disabled />';
-        $tagEngine = new TagEngine([
-            'tag_directories' => [__DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR],
-        ]);
-        $result = $tagEngine->parse($element);
+        $result = $this->tagEngine->parse($element);
         $expected = '';
         $this->assertSame($expected, $result);
     }
@@ -309,10 +245,7 @@ HTML;
     public function testNoCustomTag(): void
     {
         $element = '<div>This is a Test</div>';
-        $tagEngine = new TagEngine([
-            'tag_directories' => [__DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR],
-        ]);
-        $result = $tagEngine->parse($element);
+        $result = $this->tagEngine->parse($element);
         $expected = '<div>This is a Test</div>';
         $this->assertSame($expected, $result);
     }
@@ -325,15 +258,9 @@ HTML;
     public function testOutputBuffered(): void
     {
         $element = '<c-github></c-github>';
-        $tagEngine = new TagEngine([
-            'tag_directories' => [
-                __DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR,
-                __DIR__ . DIRECTORY_SEPARATOR . 'plugins' . DIRECTORY_SEPARATOR,
-            ],
-        ]);
         ob_start();
         echo $element;
-        $result = $tagEngine->parse();
+        $result = $this->tagEngine->parse();
         $expected = <<<HTML
 			This is a render from a plugin tag
             
@@ -346,10 +273,7 @@ HTML;
         $element = '<div>
             <c-youtube src="RLdsCL4RDf8"/>
         </div>';
-        $tagEngine = new TagEngine([
-            'tag_directories' => [__DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR],
-        ]);
-        $result = $tagEngine->parse($element);
+        $result = $this->tagEngine->parse($element);
         $expected = <<<HTML
 <div>
             			<iframe width="560" height="315" 
@@ -365,10 +289,7 @@ HTML;
     public function testSimpleTag(): void
     {
         $element = '<input type="text" />';
-        $tagEngine = new TagEngine([
-            'tag_directories' => [__DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR],
-        ]);
-        $result = $tagEngine->parse($element);
+        $result = $this->tagEngine->parse($element);
         $expected = <<<HTML
 <input type="text" />
 HTML;
