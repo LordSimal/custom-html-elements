@@ -374,5 +374,4 @@ HTML;
 HTML;
         $this->assertSame($expected, $result);
     }
-
 }
