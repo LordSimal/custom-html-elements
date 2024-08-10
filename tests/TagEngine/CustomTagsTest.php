@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace LordSimal\CustomHtmlElements\Test;
+namespace LordSimal\CustomHtmlElements\Test\TagEngine;
 
 use LordSimal\CustomHtmlElements\TagEngine;
 use PHPUnit\Framework\TestCase;
@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * @see \LordSimal\CustomHtmlElements\TagEngine
  */
-class TagEngineTest extends TestCase
+class CustomTagsTest extends TestCase
 {
     protected TagEngine $tagEngine;
 
@@ -17,8 +17,8 @@ class TagEngineTest extends TestCase
     {
         $this->tagEngine = new TagEngine([
             'tag_directories' => [
-                __DIR__ . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR,
-                __DIR__ . DIRECTORY_SEPARATOR . 'plugins' . DIRECTORY_SEPARATOR,
+                dirname(__DIR__) . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR,
+                dirname(__DIR__) . DIRECTORY_SEPARATOR . 'plugins' . DIRECTORY_SEPARATOR,
             ],
         ]);
     }
@@ -132,38 +132,6 @@ HTML;
     }
 
     /**
-     * Test nested tags
-     *
-     * @return void
-     */
-    public function testTagsNested(): void
-    {
-        $element = '<c-github><c-github></c-github></c-github>';
-        $result = $this->tagEngine->parse($element);
-        $expected = <<<HTML
-			This is a render from a plugin tag
-            <c-github></c-github>
-HTML;
-        $this->assertSame($expected, $result);
-    }
-
-    /**
-     * Make sure nested tags get rendered by default
-     *
-     * @return void
-     */
-    public function testNestedContentRendersWithConfig(): void
-    {
-        $element = '<c-nested />';
-        $result = $this->tagEngine->parse($element);
-        $expected = <<<HTML
-						This is a render from a plugin tag
-            
-HTML;
-        $this->assertSame($expected, $result);
-    }
-
-    /**
      * Test tag variant and normal HTML
      *
      * @return void
@@ -215,19 +183,6 @@ HTML;
     }
 
     /**
-     * Test no custom Tag
-     *
-     * @return void
-     */
-    public function testNoCustomTag(): void
-    {
-        $element = '<div>This is a Test</div>';
-        $result = $this->tagEngine->parse($element);
-        $expected = '<div>This is a Test</div>';
-        $this->assertSame($expected, $result);
-    }
-
-    /**
      * Test output buffered
      *
      * @return void
@@ -259,16 +214,6 @@ HTML;
 				allowfullscreen>
 			</iframe>
         </div>
-HTML;
-        $this->assertSame($expected, $result);
-    }
-
-    public function testSimpleTag(): void
-    {
-        $element = '<input type="text" />';
-        $result = $this->tagEngine->parse($element);
-        $expected = <<<HTML
-<input type="text" />
 HTML;
         $this->assertSame($expected, $result);
     }
