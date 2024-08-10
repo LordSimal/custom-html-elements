@@ -14,16 +14,16 @@ permissions:
 
 jobs:
   testsuite-linux:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
-        php-version: ['8.1', '8.2']
+        php-version: ['8.1', '8.2', '8.3']
         dependencies: ['highest']
         include:
           - php-version: '8.1'
             dependencies: 'lowest'
-          - php-version: '8.2'
+          - php-version: '8.3'
             dependencies: 'highest'
 
     steps:
@@ -45,7 +45,7 @@ jobs:
 
       - name: Run PHPUnit
         run: |
-          if [[ ${{ matrix.php-version }} == '8.2' ]]; then
+          if [[ ${{ matrix.php-version }} == '8.3' ]]; then
             vendor/bin/phpunit --coverage-clover=coverage.xml
           else
             vendor/bin/phpunit
@@ -57,7 +57,7 @@ jobs:
 
   cs-stan:
     name: Coding Standard & Static Analysis
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v4
@@ -65,7 +65,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          php-version: '8.1'
           extensions: mbstring, intl
           coverage: none
           tools: cs2pr
