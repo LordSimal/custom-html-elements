@@ -120,7 +120,7 @@ You may want to create custom HTML elements like
 <c-github>Inner Content</c-github>
 ```
 
-To access the `Inner Content` text inside your class you simply have to call `$this->content` like so
+To access the `Inner Content` text inside your class you simply have to call `$this->innerContent` like so
 
 ```php
 class Github extends CustomTag
@@ -130,7 +130,7 @@ class Github extends CustomTag
     public function render(): string
     {
         return <<< HTML
-            $this->content
+            $this->innerContent
 HTML;
     }
 }
