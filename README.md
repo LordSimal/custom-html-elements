@@ -152,20 +152,11 @@ both are rendered the same way.
 
 ## Rendering nested custom HTML elements
 
-By default this library doesn't render nested custom HTML elements. To enable this feature you have to add this config while creating the TagEngine
-
-```php
-$tagEngine = new \LordSimal\CustomHtmlElements\TagEngine([
-    'tag_directories' => [
-        __DIR__.DIRECTORY_SEPARATOR.'Tags'.DIRECTORY_SEPARATOR,
-    ],
-    'sniff_for_nested_tags' => true
-]);
-```
+By default, this library renders nested custom HTML elements. So you don't need to worry about that.
 
 ## More examples?
 
-See the [TagEngineTest](https://github.com/LordSimal/custom-html-elements/blob/main/tests/TagEngineTest.php) for all kinds of different variants how to use the TagEngine
+See all the different [TagEngine Tests](https://github.com/LordSimal/custom-html-elements/blob/main/tests/TagEngine/)
 
 ## Acknowledgements
 

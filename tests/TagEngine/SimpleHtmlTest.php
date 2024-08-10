@@ -23,6 +23,11 @@ class SimpleHtmlTest extends TestCase
         ]);
     }
 
+    /**
+     * Test simple html element
+     *
+     * @return void
+     */
     public function testSimple(): void
     {
         $element = '<div>This is a Test</div>';
@@ -33,6 +38,11 @@ HTML;
         $this->assertSame($expected, $result);
     }
 
+    /**
+     * Test simple html element with attribute
+     *
+     * @return void
+     */
     public function testSimpleSelfClosing(): void
     {
         $element = '<input type="text" />';
@@ -43,12 +53,50 @@ HTML;
         $this->assertSame($expected, $result);
     }
 
+    /**
+     * Test nested simple html element with attribute
+     *
+     * @return void
+     */
     public function testNestedSimpleTagsWithAttribute(): void
     {
         $element = '<div class="myclass"><input type="text" name="name" /></div>';
         $result = $this->tagEngine->parse($element);
         $expected = <<<HTML
 <div class="myclass"><input type="text" name="name" /></div>
+HTML;
+        $this->assertSame($expected, $result);
+    }
+
+    /**
+     * Make sure rendering a whole HTML document works as well
+     *
+     * @return void
+     */
+    public function testWholeHtmlDocument(): void
+    {
+        $element = <<<HTML
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Test</title>
+    </head>
+    <body>
+        <div>This is a Test</div>
+    </body>
+</html>
+HTML;
+        $result = $this->tagEngine->parse($element);
+        $expected = <<<HTML
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Test</title>
+    </head>
+    <body>
+        <div>This is a Test</div>
+    </body>
+</html>
 HTML;
         $this->assertSame($expected, $result);
     }

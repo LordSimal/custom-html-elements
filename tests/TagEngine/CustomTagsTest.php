@@ -24,7 +24,7 @@ class CustomTagsTest extends TestCase
     }
 
     /**
-     * Test a tab with a simple attribute
+     * Test a tag with a simple attribute (non-self-closing)
      *
      * @return void
      */
@@ -200,6 +200,11 @@ HTML;
         $this->assertSame($expected, $result);
     }
 
+    /**
+     * Test with div wrapped
+     *
+     * @return void
+     */
     public function testWithDivWrapped(): void
     {
         $element = '<div>
