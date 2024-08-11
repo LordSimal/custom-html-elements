@@ -63,7 +63,7 @@ class CacheTest extends TestCase
 			<iframe width="560" height="315" 
 				src="https://www.youtube.com/embed/RLdsCL4RDf8" 
 				allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-				allowfullscreen>
+				allowfullscreen
 			</iframe>
 HTML;
         $this->assertSame($expected, $result);
