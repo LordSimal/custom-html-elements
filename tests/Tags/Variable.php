@@ -7,6 +7,7 @@ use LordSimal\CustomHtmlElements\CustomTag;
 
 /**
  * @property string $src
+ * @property mixed $myVar
  */
 class Variable extends CustomTag
 {
