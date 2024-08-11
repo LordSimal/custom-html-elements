@@ -2,4 +2,6 @@ parameters:
     paths:
       - src
       - tests
-    level: 5
+    level: 6
+    ignoreErrors:
+            - identifier: missingType.iterableValue

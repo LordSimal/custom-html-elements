@@ -43,7 +43,7 @@ class TagEngine
     public function __construct(array $options = [])
     {
         $this->options['tag_directories'] = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR;
-        if ($options && is_array($options)) {
+        if ($options) {
             $this->options = array_merge($this->options, $options);
         }
         $prefix = $this->options['component_prefix'] ?? 'c';
