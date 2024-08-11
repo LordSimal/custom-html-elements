@@ -22,19 +22,22 @@ abstract class CustomTag
         public array $attributes,
         public string $innerContent = ''
     ) {
+        // Overwrite properties with what is given in the attributes
+        foreach ($attributes as $key => $value) {
+            if (isset($this->$key)) {
+                $this->$key = $value;
+            }
+        }
     }
 
     /**
-     * Magic Method to return readonly properties
+     * Magic Method to return properties
      *
      * @param string $var property name
      * @return mixed property
      */
     public function __get(string $var): mixed
     {
-        if (isset($this->$var)) {
-            return $this->$var;
-        }
         if (isset($this->attributes[$var])) {
             return $this->attributes[$var];
         }

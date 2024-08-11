@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace LordSimal\CustomHtmlElements\Test\TagEngine;
 
 use FilesystemIterator;
+use LordSimal\CustomHtmlElements\Error\ConfigException;
 use LordSimal\CustomHtmlElements\TagEngine;
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
@@ -75,5 +76,32 @@ HTML;
 
         $result = $this->tagEngine->parse($element);
         $this->assertSame($expected, $result);
+    }
+
+    public function testCacheWillThrowIfCacheDirIsEmpty(): void
+    {
+        $this->expectException(ConfigException::class);
+        $this->expectExceptionMessage('Please set a `cache_dir` config');
+        new TagEngine([
+            'tag_directories' => [
+                dirname(__DIR__) . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR,
+                dirname(__DIR__) . DIRECTORY_SEPARATOR . 'plugins' . DIRECTORY_SEPARATOR,
+            ],
+            'enable_cache' => true,
+        ]);
+    }
+
+    public function testCacheWillThrowIfCacheDirIsNotExistent(): void
+    {
+        $this->expectException(ConfigException::class);
+        $this->expectExceptionMessage('Cache directory does not exist or is not writable');
+        new TagEngine([
+            'tag_directories' => [
+                dirname(__DIR__) . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR,
+                dirname(__DIR__) . DIRECTORY_SEPARATOR . 'plugins' . DIRECTORY_SEPARATOR,
+            ],
+            'enable_cache' => true,
+            'cache_dir' => dirname(__DIR__) . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR . 'non-existent',
+        ]);
     }
 }

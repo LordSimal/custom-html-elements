@@ -10,6 +10,8 @@ class SimpleTag extends CustomTag
      */
     public function render(): string
     {
-        return "<{$this->tag}>{$this->innerContent}</{$this->tag}>";
+        $tag = self::$tag;
+
+        return "<$tag>$this->innerContent</$tag>";
     }
 }

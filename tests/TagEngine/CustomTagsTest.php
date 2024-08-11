@@ -30,7 +30,7 @@ class CustomTagsTest extends TestCase
      */
     public function testTagWithAttribute(): void
     {
-        $element = '<c-youtube src="RLdsCL4RDf8"></c-youtube>';
+        $element = '<c-youtube src="RLdsCL4RDf8" />';
         $result = $this->tagEngine->parse($element);
         $expected = <<<HTML
 			<iframe width="560" height="315" 
@@ -132,13 +132,51 @@ HTML;
     }
 
     /**
+     * Test inner content is passed down to the tag and can be outputted
+     *
+     * @return void
+     */
+    public function testTagWithInnerContentNested(): void
+    {
+        $element = <<<HTML
+<div class="outer">
+    <c-github>
+        Outer Content
+        <div class="inner">
+            Inner Content
+            <c-github>
+                Inner Inner Content
+            </c-github>
+        </div>
+    </c-github>
+</div>
+HTML;
+        $result = $this->tagEngine->parse($element);
+        $expected = <<<HTML
+<div class="outer">
+    			This is a render from a plugin tag
+            
+        Outer Content
+        <div class="inner">
+            Inner Content
+            <c-github>
+                Inner Inner Content
+            
+        </div>
+    </c-github>
+</div>
+HTML;
+        $this->assertSame($expected, $result);
+    }
+
+    /**
      * Test tag variant and normal HTML
      *
      * @return void
      */
     public function testTagWithAttributeAndNormalHTML(): void
     {
-        $element = '<c-youtube src="RLdsCL4RDf8"></c-youtube><div>Test</div>';
+        $element = '<c-youtube src="RLdsCL4RDf8" /><div>Test</div>';
         $result = $this->tagEngine->parse($element);
         $expected = <<<HTML
 			<iframe width="560" height="315" 
@@ -189,7 +227,7 @@ HTML;
      */
     public function testOutputBuffered(): void
     {
-        $element = '<c-github></c-github>';
+        $element = '<c-github />';
         ob_start();
         echo $element;
         $result = $this->tagEngine->parse();
@@ -220,6 +258,44 @@ HTML;
 			</iframe>
         </div>
 HTML;
+        $this->assertSame($expected, $result);
+    }
+
+    /**
+     * Test default class properties are rendered correctly
+     *
+     * @return void
+     */
+    public function testClassProperties(): void
+    {
+        $element = '<c-class-properties src="RLdsCL4RDf8" />';
+        $result = $this->tagEngine->parse($element);
+        $expected = <<<HTML
+            <div class="default"></div>
+HTML;
+        $this->assertSame($expected, $result);
+    }
+
+    /**
+     * Test class properties can be overwritten
+     *
+     * @return void
+     */
+    public function testClassPropertiesOverwritten(): void
+    {
+        $element = '<c-class-properties src="RLdsCL4RDf8" test="overwritten" />';
+        $result = $this->tagEngine->parse($element);
+        $expected = <<<HTML
+            <div class="overwritten"></div>
+HTML;
+        $this->assertSame($expected, $result);
+    }
+
+    public function testUnknownTag(): void
+    {
+        $element = '<c-unknown>Test inner</c-unknown>';
+        $result = $this->tagEngine->parse($element);
+        $expected = '<unknown>Test inner</unknown>';
         $this->assertSame($expected, $result);
     }
 }

@@ -33,4 +33,11 @@ class TagRegistryTest extends TestCase
         $this->expectExceptionMessage('Tag Unknown was not found.');
         TagRegistry::getTag('Unknown');
     }
+
+    public function testHasTag(): void
+    {
+        TagRegistry::register(Button::class);
+        $this->assertTrue(TagRegistry::hasTag('c-button'));
+        $this->assertFalse(TagRegistry::hasTag('Unknown'));
+    }
 }

@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace LordSimal\CustomHtmlElements;
 
-use Exception;
+use LordSimal\CustomHtmlElements\Error\ConfigException;
 use LordSimal\CustomHtmlElements\Error\TagNotFoundException;
 use Spatie\StructureDiscoverer\Discover;
 
@@ -52,13 +52,10 @@ class TagEngine
 
         if ($this->options['enable_cache']) {
             if (empty($this->options['cache_dir'])) {
-                throw new Exception('Please set a `cache_dir` config');
+                throw new ConfigException('Please set a `cache_dir` config');
             }
-            if (!is_dir($this->options['cache_dir'])) {
-                throw new Exception('Cache directory does not exist');
-            }
-            if (!is_writable($this->options['cache_dir'])) {
-                throw new Exception('Cache directory is not writable');
+            if (!is_dir($this->options['cache_dir']) || !is_writable($this->options['cache_dir'])) {
+                throw new ConfigException('Cache directory does not exist or is not writable');
             }
         }
     }
@@ -134,7 +131,7 @@ class TagEngine
     protected function parseAttributes(string $attributesString): array
     {
         // Regex to match attributes (both static and dynamic)
-        $pattern = '/(\w+)=["\']([^"\']+)["\']/';
+        $pattern = '/(:?\w+)=["\']([^"\']+)["\']/';
         preg_match_all($pattern, $attributesString, $matches, PREG_SET_ORDER);
 
         $attributes = [];
@@ -145,7 +142,8 @@ class TagEngine
             // Check if it's a dynamic attribute (starts with ":")
             if (str_starts_with($name, ':')) {
                 $varName = substr($name, 1); // remove the leading ":"
-                $attributes[$varName] = $this->data[$value] ?? null;
+                $dataName = substr($value, 1); // remove the leading "$"
+                $attributes[$varName] = $this->data[$dataName] ?? null;
             } else {
                 // Static attribute
                 $attributes[$name] = $value;
