@@ -131,13 +131,13 @@ class TagEngine
     protected function parseAttributes(string $attributesString): array
     {
         // Regex to match attributes (both static and dynamic)
-        $pattern = '/([:?\w-]+)=["\']([^"\']+)["\']/';
+        $pattern = '/([:\w-]+)(?:=["\']([^"\']+)["\'])?/';
         preg_match_all($pattern, $attributesString, $matches, PREG_SET_ORDER);
 
         $attributes = [];
         foreach ($matches as $match) {
             $name = $match[1];
-            $value = $match[2];
+            $value = $match[2] ?? true; // If no value, set it to true
 
             $name = str_replace('-', '_', $name); // Replace hyphens with underscores so that it works with properties
 

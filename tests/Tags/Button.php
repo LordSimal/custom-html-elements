@@ -9,6 +9,7 @@ use LordSimal\CustomHtmlElements\CustomTag;
  * @property string $type
  * @property string $text
  * @property string $url
+ * @property bool $other
  */
 class Button extends CustomTag
 {
@@ -22,8 +23,6 @@ class Button extends CustomTag
         }
         $classes = implode(' ', $classes);
 
-        return <<< HTML
-			<a href="$this->url" class="$classes">$this->text</a>
-HTML;
+        return '<a href="' . $this->url . '" class="' . $classes . '"' . ($this->other ? ' other' : '') . '>' . $this->text . '</a>';
     }
 }

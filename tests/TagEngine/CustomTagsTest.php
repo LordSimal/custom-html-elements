@@ -110,11 +110,9 @@ HTML;
      */
     public function testTagWithMultipleAttributes(): void
     {
-        $element = '<c-button type="primary" text="Click me" url="/something/stupid" />';
+        $element = '<c-button type="primary" text="Click me" url="/something/stupid" other />';
         $result = $this->tagEngine->parse($element);
-        $expected = <<<HTML
-			<a href="/something/stupid" class="c-button c-button--primary">Click me</a>
-HTML;
+        $expected = '<a href="/something/stupid" class="c-button c-button--primary" other>Click me</a>';
         $this->assertSame($expected, $result);
     }
 

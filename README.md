@@ -154,6 +154,28 @@ both are rendered the same way.
 
 By default, this library renders nested custom HTML elements. So you don't need to worry about that.
 
+## Disabling custom HTML elements
+
+You have 2 ways how you can disable custom HTML elements:
+
+### Disable all occurence of custom HTML elements
+
+You can add the attributes 
+
+```php
+public bool $disabled = true;
+```
+
+to your Custom HTML Element class.
+
+### Disable only specific occurence of custom HTML elements
+
+You can add the attribute `disabled`, then it will not be rendered.
+
+```html
+<c-youtube src="RLdsCL4RDf8" disabled />
+```
+
 ## More examples?
 
 See all the different [TagEngine Tests](https://github.com/LordSimal/custom-html-elements/blob/main/tests/TagEngine/)
