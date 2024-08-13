@@ -19,7 +19,8 @@ class Youtube extends CustomTag
 			<iframe width="560" height="315" $this->data_test_something
 				src="https://www.youtube.com/embed/{$this->src}" 
 				allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-				allowfullscreen
+				allowfullscreen>
+				$this->innerContent
 			</iframe>
 HTML;
     }

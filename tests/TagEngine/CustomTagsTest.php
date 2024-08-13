@@ -36,7 +36,8 @@ class CustomTagsTest extends TestCase
 			<iframe width="560" height="315" 
 				src="https://www.youtube.com/embed/RLdsCL4RDf8" 
 				allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-				allowfullscreen
+				allowfullscreen>
+				
 			</iframe>
 HTML;
         $this->assertSame($expected, $result);
@@ -55,7 +56,8 @@ HTML;
 			<iframe width="560" height="315" test
 				src="https://www.youtube.com/embed/RLdsCL4RDf8" 
 				allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-				allowfullscreen
+				allowfullscreen>
+				
 			</iframe>
 HTML;
         $this->assertSame($expected, $result);
@@ -74,7 +76,8 @@ HTML;
 			<iframe width="560" height="315" 
 				src="https://www.youtube.com/embed/RLdsCL4RDf8" 
 				allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-				allowfullscreen
+				allowfullscreen>
+				
 			</iframe>
 HTML;
         $this->assertSame($expected, $result);
@@ -93,11 +96,38 @@ HTML;
 			<iframe width="560" height="315" 
 				src="https://www.youtube.com/embed/RLdsCL4RDf8" 
 				allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-				allowfullscreen
+				allowfullscreen>
+				
 			</iframe>			<iframe width="560" height="315" 
 				src="https://www.youtube.com/embed/RLdsCL4RDf8" 
 				allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-				allowfullscreen
+				allowfullscreen>
+				
+			</iframe>
+HTML;
+        $this->assertSame($expected, $result);
+    }
+
+    /**
+     * Test multiple self-closing and non-self-closing tag variants
+     *
+     * @return void
+     */
+    public function testMultipleTagsWithAttributeSelfClosingAndNonSelfClosing(): void
+    {
+        $element = '<c-youtube src="RLdsCL4RDf8" /><c-youtube src="RLdsCL4RDf8">Some Content</c-youtube>';
+        $result = $this->tagEngine->parse($element);
+        $expected = <<<HTML
+			<iframe width="560" height="315" 
+				src="https://www.youtube.com/embed/RLdsCL4RDf8" 
+				allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+				allowfullscreen>
+				
+			</iframe>			<iframe width="560" height="315" 
+				src="https://www.youtube.com/embed/RLdsCL4RDf8" 
+				allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+				allowfullscreen>
+				Some Content
 			</iframe>
 HTML;
         $this->assertSame($expected, $result);
@@ -199,7 +229,8 @@ HTML;
 			<iframe width="560" height="315" 
 				src="https://www.youtube.com/embed/RLdsCL4RDf8" 
 				allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-				allowfullscreen
+				allowfullscreen>
+				
 			</iframe><div>Test</div>
 HTML;
         $this->assertSame($expected, $result);
@@ -218,7 +249,8 @@ HTML;
 			<iframe width="560" height="315" 
 				src="https://www.youtube.com/embed/RLdsCL4RDf8" 
 				allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-				allowfullscreen
+				allowfullscreen>
+				
 			</iframe><div>Test</div><input type="text"/>
 HTML;
         $this->assertSame($expected, $result);
@@ -271,7 +303,8 @@ HTML;
             			<iframe width="560" height="315" 
 				src="https://www.youtube.com/embed/RLdsCL4RDf8" 
 				allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-				allowfullscreen
+				allowfullscreen>
+				
 			</iframe>
         </div>
 HTML;

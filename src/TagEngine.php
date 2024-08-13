@@ -26,7 +26,7 @@ class TagEngine
      *
      * @var string
      */
-    protected string $regex = '/<%s-([\w-]+)\s*([^>]*)>(.*?)<\/%s-\1>|<%s-([\w-]+)\s*([^>]*)\/>/s';
+    protected string $regex = '/<%s-([\w-]+)\s*([^>]*)\/\s*>|<%s-([\w-]+)\s*([^>]*)>(.*?)<\/%s-\3>/s';
 
     /**
      * Holds the data array which is passed to the custom tags
@@ -103,9 +103,9 @@ class TagEngine
      */
     protected function replaceComponent(array $matches): string
     {
-        $componentName = $matches[1] ?: $matches[4]; // Tag name for both self-closing and normal tags
-        $attributesString = $matches[2] ?: $matches[5] ?? ''; // Attributes for both self-closing and normal tags
-        $content = $matches[3] ?? ''; // Inner content
+        $componentName = $matches[1] ?: $matches[3]; // Tag name for both self-closing and normal tags
+        $attributesString = $matches[2] ?: $matches[4] ?? ''; // Attributes for both self-closing and normal tags
+        $content = $matches[5] ?? ''; // Inner content
 
         $attributes = $this->parseAttributes($attributesString);
 
