@@ -39,7 +39,7 @@ class CacheTest extends TestCase
     {
         $files = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($this->cacheDir, FilesystemIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::CHILD_FIRST
+            RecursiveIteratorIterator::CHILD_FIRST,
         );
 
         foreach ($files as $fileInfo) {
@@ -71,7 +71,7 @@ HTML;
 
         $files = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($this->cacheDir, FilesystemIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::CHILD_FIRST
+            RecursiveIteratorIterator::CHILD_FIRST,
         );
         $this->assertGreaterThan(0, iterator_count($files));
 

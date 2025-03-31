@@ -20,7 +20,7 @@ abstract class CustomTag
      */
     public function __construct(
         public array $attributes,
-        public string $innerContent = ''
+        public string $innerContent = '',
     ) {
         // Overwrite properties with what is given in the attributes
         foreach ($attributes as $key => $value) {
