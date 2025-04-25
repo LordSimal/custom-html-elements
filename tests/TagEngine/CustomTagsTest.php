@@ -33,7 +33,27 @@ class CustomTagsTest extends TestCase
         $element = '<c-youtube src="RLdsCL4RDf8" />';
         $result = $this->tagEngine->parse($element);
         $expected = <<<HTML
-			<iframe width="560" height="315" 
+			<iframe width="560" height="315"  class=""
+				src="https://www.youtube.com/embed/RLdsCL4RDf8" 
+				allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+				allowfullscreen>
+				
+			</iframe>
+HTML;
+        $this->assertSame($expected, $result);
+    }
+
+    /**
+     * Test a tag with a tailwind class
+     *
+     * @return void
+     */
+    public function testTagWithTailwindClass(): void
+    {
+        $element = '<c-youtube src="RLdsCL4RDf8" class="[&>svg]:w-1 [&>svg]:h-auto" />';
+        $result = $this->tagEngine->parse($element);
+        $expected = <<<HTML
+			<iframe width="560" height="315"  class="[&>svg]:w-1 [&>svg]:h-auto"
 				src="https://www.youtube.com/embed/RLdsCL4RDf8" 
 				allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
 				allowfullscreen>
@@ -53,7 +73,7 @@ HTML;
         $element = '<c-youtube src="RLdsCL4RDf8" data-test-something="test" />';
         $result = $this->tagEngine->parse($element);
         $expected = <<<HTML
-			<iframe width="560" height="315" test
+			<iframe width="560" height="315" test class=""
 				src="https://www.youtube.com/embed/RLdsCL4RDf8" 
 				allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
 				allowfullscreen>
@@ -73,7 +93,7 @@ HTML;
         $element = '<c-youtube src="RLdsCL4RDf8" />';
         $result = $this->tagEngine->parse($element);
         $expected = <<<HTML
-			<iframe width="560" height="315" 
+			<iframe width="560" height="315"  class=""
 				src="https://www.youtube.com/embed/RLdsCL4RDf8" 
 				allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
 				allowfullscreen>
@@ -93,12 +113,12 @@ HTML;
         $element = '<c-youtube src="RLdsCL4RDf8" /><c-youtube src="RLdsCL4RDf8" />';
         $result = $this->tagEngine->parse($element);
         $expected = <<<HTML
-			<iframe width="560" height="315" 
+			<iframe width="560" height="315"  class=""
 				src="https://www.youtube.com/embed/RLdsCL4RDf8" 
 				allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
 				allowfullscreen>
 				
-			</iframe>			<iframe width="560" height="315" 
+			</iframe>			<iframe width="560" height="315"  class=""
 				src="https://www.youtube.com/embed/RLdsCL4RDf8" 
 				allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
 				allowfullscreen>
@@ -118,12 +138,12 @@ HTML;
         $element = '<c-youtube src="RLdsCL4RDf8" /><c-youtube src="RLdsCL4RDf8">Some Content</c-youtube>';
         $result = $this->tagEngine->parse($element);
         $expected = <<<HTML
-			<iframe width="560" height="315" 
+			<iframe width="560" height="315"  class=""
 				src="https://www.youtube.com/embed/RLdsCL4RDf8" 
 				allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
 				allowfullscreen>
 				
-			</iframe>			<iframe width="560" height="315" 
+			</iframe>			<iframe width="560" height="315"  class=""
 				src="https://www.youtube.com/embed/RLdsCL4RDf8" 
 				allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
 				allowfullscreen>
@@ -226,7 +246,7 @@ HTML;
         $element = '<c-youtube src="RLdsCL4RDf8" /><div>Test</div>';
         $result = $this->tagEngine->parse($element);
         $expected = <<<HTML
-			<iframe width="560" height="315" 
+			<iframe width="560" height="315"  class=""
 				src="https://www.youtube.com/embed/RLdsCL4RDf8" 
 				allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
 				allowfullscreen>
@@ -246,7 +266,7 @@ HTML;
         $element = '<c-youtube src="RLdsCL4RDf8" /><div>Test</div><input type="text"/>';
         $result = $this->tagEngine->parse($element);
         $expected = <<<HTML
-			<iframe width="560" height="315" 
+			<iframe width="560" height="315"  class=""
 				src="https://www.youtube.com/embed/RLdsCL4RDf8" 
 				allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
 				allowfullscreen>
@@ -300,7 +320,7 @@ HTML;
         $result = $this->tagEngine->parse($element);
         $expected = <<<HTML
 <div>
-            			<iframe width="560" height="315" 
+            			<iframe width="560" height="315"  class=""
 				src="https://www.youtube.com/embed/RLdsCL4RDf8" 
 				allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
 				allowfullscreen>

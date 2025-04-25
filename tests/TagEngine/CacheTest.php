@@ -60,7 +60,7 @@ class CacheTest extends TestCase
         $element = '<c-youtube src="RLdsCL4RDf8"></c-youtube>';
         $result = $this->tagEngine->parse($element);
         $expected = <<<HTML
-			<iframe width="560" height="315" 
+			<iframe width="560" height="315"  class=""
 				src="https://www.youtube.com/embed/RLdsCL4RDf8" 
 				allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
 				allowfullscreen>

@@ -26,7 +26,7 @@ class TagEngine
      *
      * @var string
      */
-    protected string $regex = '/<%s-([\w-]+)\s*([^>]*)\/\s*>|<%s-([\w-]+)\s*([^>]*)>(.*?)<\/%s-\3>/s';
+    protected string $regex = '/<%s-([\w-]+)\s*((?:"[^"]*"|\'[^\']*\'|[^\'">])*)\/\s*>|<%s-([\w-]+)\s*((?:"[^"]*"|\'[^\']*\'|[^\'">])*)>(.*?)<\/%s-\3>/s';
 
     /**
      * Holds the data array which is passed to the custom tags
