@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace LordSimal\CustomHtmlElements;
 
 use LordSimal\CustomHtmlElements\Error\ConfigException;
+use LordSimal\CustomHtmlElements\Error\RegexException;
 use LordSimal\CustomHtmlElements\Error\TagNotFoundException;
 use Spatie\StructureDiscoverer\Discover;
 
@@ -86,6 +87,7 @@ class TagEngine
      *   it will use this value to search for custom tags.
      * @param array $data An array of variables to pass to the custom tags.
      * @return string The parsed $source value.
+     * @throws \LordSimal\CustomHtmlElements\Error\RegexException
      */
     public function parse(mixed $source = false, array $data = []): string
     {
@@ -94,7 +96,25 @@ class TagEngine
         }
         $this->data = $data;
 
-        return preg_replace_callback($this->regex, [$this, 'replaceComponent'], $source);
+        $result = preg_replace_callback($this->regex, [$this, 'replaceComponent'], $source);
+
+        if ($result === null) {
+            // Something went wrong with the regex and/or the content
+            $errorCode = preg_last_error();
+            $errors = [
+                PREG_NO_ERROR => 'No error',
+                PREG_INTERNAL_ERROR => 'Internal PCRE error',
+                PREG_BACKTRACK_LIMIT_ERROR => 'Backtrack limit was exhausted',
+                PREG_RECURSION_LIMIT_ERROR => 'Recursion limit was exhausted',
+                PREG_BAD_UTF8_ERROR => 'Malformed UTF-8 data',
+                PREG_BAD_UTF8_OFFSET_ERROR => 'Bad UTF-8 offset',
+                PREG_JIT_STACKLIMIT_ERROR => 'JIT stack limit exhausted',
+            ];
+
+            throw new RegexException($errors[$errorCode] ?? 'Unknown error', $source, $this->regex);
+        }
+
+        return $result;
     }
 
     /**
