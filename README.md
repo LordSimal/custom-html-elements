@@ -180,6 +180,14 @@ You can add the attribute `disabled`, then it will not be rendered.
 
 See all the different [TagEngine Tests](https://github.com/LordSimal/custom-html-elements/blob/main/tests/TagEngine/)
 
+## Limitations
+
+Since everything gets parsed via regex, there are some limitations related to how regex works.
+
+E.g. if you have an enormous amount of HTML which needs to be parsed at once, it may be possible that the regex fails to parse the HTML correctly (e.g. [PREG_BACKTRACK_LIMIT_ERROR](https://www.php.net/manual/en/function.preg-last-error.php#refsect1-function.preg-last-error-returnvalues))
+
+In this case you will have to find another way to encapsulate your HTML elements in PHP.
+
 ## Acknowledgements
 
 This library is inspired by the following packages
