@@ -27,7 +27,7 @@ class TagEngine
      *
      * @var string
      */
-    protected string $regex = '/<%s-([\w-]+)\s*((?:"[^"]*"|\'[^\']*\'|[^\'">])*)\/\s*>|<%s-([\w-]+)\s*((?:"[^"]*"|\'[^\']*\'|[^\'">])*)>(.*?)<\/%s-\3>/s';
+    protected string $regex;
 
     /**
      * Holds the data array which is passed to the custom tags
@@ -47,8 +47,7 @@ class TagEngine
         if ($options) {
             $this->options = array_merge($this->options, $options);
         }
-        $prefix = $this->options['component_prefix'] ?? 'c';
-        $this->regex = sprintf($this->regex, $prefix, $prefix, $prefix);
+        $this->setRegex();
         $this->registerTags();
 
         if ($this->options['enable_cache']) {
@@ -59,6 +58,33 @@ class TagEngine
                 throw new ConfigException('Cache directory does not exist or is not writable');
             }
         }
+    }
+
+    /**
+     * The regex pattern is quite insane, so let's break it down
+     *
+     * @return void
+     */
+    protected function setRegex(): void
+    {
+        $tagName = '([\w-]+)'; // Matches word characters and hyphens for tag names
+        $whitespace = '\s*'; // Optional whitespace
+        $quotedAttr = '(?:"[^"]*"|\'[^\']*\')'; // Matches quoted attributes (e.g., "value" or 'value')
+        $unquotedAttr = '[^\'">]'; // Matches unquoted attribute values (excluding quotes and >)
+        $attributes = "((?:$quotedAttr|$unquotedAttr)*)"; // Zero or more attributes
+        $prefix = $this->options['component_prefix'] ?? 'c'; // Placeholder for tag prefix (e.g., 'c' in c-tag)
+
+        // Self-closing tag pattern: <c-tag attributes/>
+        $selfClosingOpen = "<$prefix-$tagName$whitespace$attributes$whitespace\/>";
+
+        // Tag with content pattern: <c-tag attributes>content</c-tag>
+        $contentOpen = "<$prefix-$tagName$whitespace$attributes>";
+        $contentInner = '(.*?)'; // Non-greedy content between tags
+        $contentClose = "<\/$prefix-\\3>"; // Closing tag, referencing the tag name from group 3
+        $contentPattern = "$contentOpen$contentInner$contentClose";
+
+        // Combine both patterns with alternation
+        $this->regex = "/$selfClosingOpen|$contentPattern/s";
     }
 
     /**
