@@ -11,6 +11,11 @@ use Spatie\StructureDiscoverer\Discover;
 class TagEngine
 {
     /**
+     * @var self|null
+     */
+    private static ?TagEngine $instance = null;
+
+    /**
      * Holds the options array
      *
      * @var array
@@ -37,6 +42,11 @@ class TagEngine
     protected array $data = [];
 
     /**
+     * @var array
+     */
+    protected array $discovery_cache = [];
+
+    /**
      * Initialize TagEngine
      *
      * @param array $options to override existing settings
@@ -58,6 +68,18 @@ class TagEngine
                 throw new ConfigException('Cache directory does not exist or is not writable');
             }
         }
+    }
+
+    /**
+     * @return self
+     */
+    public static function getInstance(?array $options = null): self
+    {
+        if (self::$instance === null) {
+            self::$instance = new self($options ?? []);
+        }
+
+        return self::$instance;
     }
 
     /**
@@ -96,6 +118,12 @@ class TagEngine
     {
         if ($this->options['tag_directories']) {
             foreach ($this->options['tag_directories'] as $tag_directory) {
+                if (isset($this->discovery_cache[$tag_directory])) {
+                    continue;
+                }
+                $this->discovery_cache[$tag_directory] = true;
+
+                // This is quite expensive, so only do it once
                 $classes = Discover::in($tag_directory)->classes()
                     ->extending(CustomTag::class)->get();
                 /** @var \LordSimal\CustomHtmlElements\CustomTag|string $class */
