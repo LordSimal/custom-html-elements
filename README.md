@@ -42,7 +42,7 @@ To render this custom HTML element you need to do this:
 
 ```php
 $htmlOutput = ''; // This variable represents what is shown above
-$engine = new \LordSimal\CustomHtmlElements\TagEngine([
+$engine = new \LordSimal\CustomHtmlElements\TagEngine::getInstance([
     'tag_directories' => [
         __DIR__.DIRECTORY_SEPARATOR.'Tags'.DIRECTORY_SEPARATOR,
         __DIR__.DIRECTORY_SEPARATOR.'OtherTagsFolder'.DIRECTORY_SEPARATOR,
