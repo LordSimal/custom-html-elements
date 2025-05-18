@@ -45,10 +45,10 @@ class TagEngineTest extends TestCase
 
         $test = '';
         $pcreLimit = 100000;
-        for($i = 0; $i < $pcreLimit; $i++) {
+        for ($i = 0; $i < $pcreLimit; $i++) {
             $test .= '<c-tag>Test';
         }
-        for($i = 0; $i < $pcreLimit; $i++) {
+        for ($i = 0; $i < $pcreLimit; $i++) {
             $test .= '</c-tag>';
         }
 
