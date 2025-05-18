@@ -34,7 +34,7 @@
         "cs-fix": "vendor/bin/phpcbf --colors -p",
         "test": "vendor/bin/phpunit --colors=always --display-warnings",
         "coverage": "php -d xdebug.mode=coverage vendor/bin/phpunit --coverage-html coverage",
-        "stan-setup": "cp composer.json composer.backup && composer require --dev symfony/polyfill-php81 phpstan/phpstan:^1.10 psalm/phar:^5.15 && mv composer.backup composer.json",
+        "stan-setup": "cp composer.json composer.backup && composer require --dev symfony/polyfill-php81 phpstan/phpstan:^2.0 psalm/phar:^6.0 && mv composer.backup composer.json",
         "phpstan": "vendor/bin/phpstan analyze",
         "psalm": "vendor/bin/psalm.phar --show-info=false",
         "stan": [

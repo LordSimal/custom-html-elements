@@ -151,21 +151,8 @@ class TagEngine
         $this->data = $data;
 
         $result = preg_replace_callback($this->regex, [$this, 'replaceComponent'], $source);
-
         if ($result === null) {
-            // Something went wrong with the regex and/or the content
-            $errorCode = preg_last_error();
-            $errors = [
-                PREG_NO_ERROR => 'No error',
-                PREG_INTERNAL_ERROR => 'Internal PCRE error',
-                PREG_BACKTRACK_LIMIT_ERROR => 'Backtrack limit was exhausted',
-                PREG_RECURSION_LIMIT_ERROR => 'Recursion limit was exhausted',
-                PREG_BAD_UTF8_ERROR => 'Malformed UTF-8 data',
-                PREG_BAD_UTF8_OFFSET_ERROR => 'Bad UTF-8 offset',
-                PREG_JIT_STACKLIMIT_ERROR => 'JIT stack limit exhausted',
-            ];
-
-            throw new RegexException($errors[$errorCode] ?? 'Unknown error', $source, $this->regex);
+            $this->throwOnNull($source);
         }
 
         return $result;
@@ -185,15 +172,24 @@ class TagEngine
 
         // If the component has content, process it (handles nested components)
         if ($content) {
+            $preContent = $content;
             $content = preg_replace_callback($this->regex, [$this, 'replaceComponent'], $content);
+            if ($content === null) {
+                $this->throwOnNull($preContent);
+            }
         }
 
         $result = $this->renderComponent($componentName, $attributes, $content);
 
         // Render nested components
         do {
+            $preResult = $result;
             $result = preg_replace_callback($this->regex, [$this, 'replaceComponent'], $result);
         } while (preg_match($this->regex, $result));
+
+        if ($result === null) {
+            $this->throwOnNull($preResult);
+        }
 
         return $result;
     }
@@ -241,7 +237,7 @@ class TagEngine
             $cacheKey = md5($componentName . serialize($attributes) . $innerContent);
             $cacheFile = $this->options['cache_dir'] . DIRECTORY_SEPARATOR . $cacheKey . '.html';
             if (file_exists($cacheFile)) {
-                return file_get_contents($cacheFile);
+                return file_get_contents($cacheFile) ?: '';
             }
         }
 
@@ -264,5 +260,27 @@ class TagEngine
         }
 
         return $html;
+    }
+
+    /**
+     * @param string $source
+     * @return never
+     * @throws \LordSimal\CustomHtmlElements\Error\RegexException
+     */
+    protected function throwOnNull(string $source): never
+    {
+        // Something went wrong with the regex and/or the content
+        $errorCode = preg_last_error();
+        $errors = [
+            PREG_NO_ERROR => 'No error',
+            PREG_INTERNAL_ERROR => 'Internal PCRE error',
+            PREG_BACKTRACK_LIMIT_ERROR => 'Backtrack limit was exhausted',
+            PREG_RECURSION_LIMIT_ERROR => 'Recursion limit was exhausted',
+            PREG_BAD_UTF8_ERROR => 'Malformed UTF-8 data',
+            PREG_BAD_UTF8_OFFSET_ERROR => 'Bad UTF-8 offset',
+            PREG_JIT_STACKLIMIT_ERROR => 'JIT stack limit exhausted',
+        ];
+
+        throw new RegexException($errors[$errorCode] ?? 'Unknown error', $source, $this->regex);
     }
 }
