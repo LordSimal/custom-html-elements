@@ -23,7 +23,7 @@ jobs:
         include:
           - php-version: '8.1'
             dependencies: 'lowest'
-          - php-version: '8.3'
+          - php-version: '8.4'
             dependencies: 'highest'
 
     steps:
@@ -67,7 +67,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.1'
+          php-version: '8.4'
           extensions: mbstring, intl
           coverage: none
           tools: cs2pr
