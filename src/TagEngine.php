@@ -154,6 +154,7 @@ class TagEngine
         if ($result === null) {
             $this->throwOnNull($source);
         }
+        assert(is_string($result));
 
         return $result;
     }
