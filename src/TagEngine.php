@@ -5,7 +5,6 @@ namespace LordSimal\CustomHtmlElements;
 
 use LordSimal\CustomHtmlElements\Error\ConfigException;
 use LordSimal\CustomHtmlElements\Error\RegexException;
-use LordSimal\CustomHtmlElements\Error\TagNotFoundException;
 use ReflectionClass;
 use Spatie\StructureDiscoverer\Discover;
 
@@ -48,6 +47,11 @@ class TagEngine
     protected array $discovery_cache = [];
 
     /**
+     * @var array<string, class-string<\LordSimal\CustomHtmlElements\CustomTag>>
+     */
+    protected array $tags = [];
+
+    /**
      * Initialize TagEngine
      *
      * @param array $options to override existing settings
@@ -57,6 +61,7 @@ class TagEngine
         if ($options) {
             $this->options = array_merge($this->options, $options);
         }
+        $this->tags = TagRegistry::getTags();
         $this->setRegex();
         $this->registerTags();
 
@@ -128,8 +133,17 @@ class TagEngine
                 // This is quite expensive, so only do it once
                 $classes = Discover::in($tag_directory)->classes()
                     ->extending(CustomTag::class)->get();
-                /** @var \LordSimal\CustomHtmlElements\CustomTag|string $class */
                 foreach ($classes as $class) {
+                    if (!is_subclass_of($class, CustomTag::class)) {
+                        continue;
+                    }
+
+                    $tagName = (new ReflectionClass($class))->getStaticPropertyValue('tag');
+                    if (!is_string($tagName)) {
+                        continue;
+                    }
+
+                    $this->tags[$tagName] = $class;
                     TagRegistry::register($class);
                 }
             }
@@ -236,11 +250,8 @@ class TagEngine
      */
     protected function renderComponent(string $componentName, array $attributes, string $innerContent = ''): string
     {
-        try {
-            $class = TagRegistry::getTag(sprintf('%s-%s', $this->options['component_prefix'], $componentName));
-        } catch (TagNotFoundException) {
-            $class = null;
-        }
+        $tagName = sprintf('%s-%s', $this->options['component_prefix'], $componentName);
+        $class = $this->tags[$tagName] ?? null;
 
         if ($this->options['enable_cache']) {
             $cacheKey = hash('sha256', serialize([
@@ -261,7 +272,8 @@ class TagEngine
         if ($class !== null) {
             $tag = new $class($attributes, $innerContent);
 
-            if ($tag->disabled) {
+            $properties = get_object_vars($tag);
+            if (($attributes['disabled'] ?? false) || ($properties['disabled'] ?? false)) {
                 return '';
             }
         } else {
