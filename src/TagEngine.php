@@ -101,7 +101,9 @@ class TagEngine
 
         // Tag with content pattern: <c-tag attributes>content</c-tag>
         $contentOpen = "<$prefix-$tagName$whitespace$attributes>";
-        $contentInner = '(.*?)'; // Non-greedy content between tags
+        // Recurse through nested custom tags so a closing tag always belongs to
+        // the opening tag at the current nesting level.
+        $contentInner = '((?:(?R)|(?!<\/' . $prefix . '-\\3>).)*)';
         $contentClose = "<\/$prefix-\\3>"; // Closing tag, referencing the tag name from group 3
         $contentPattern = "$contentOpen$contentInner$contentClose";
 
