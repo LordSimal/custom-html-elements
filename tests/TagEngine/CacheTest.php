@@ -75,6 +75,9 @@ HTML;
         );
         $this->assertGreaterThan(0, iterator_count($files));
 
+        $files->rewind();
+        $this->assertMatchesRegularExpression('/^[a-f0-9]{64}\\.html$/', $files->current()->getFilename());
+
         $result = $this->tagEngine->parse($element);
         $this->assertSame($expected, $result);
     }
