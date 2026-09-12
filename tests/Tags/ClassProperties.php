@@ -14,6 +14,8 @@ class ClassProperties extends CustomTag
 
     public string $test = 'default';
 
+    public ?string $nullable = null;
+
     public function render(): string
     {
         return <<< HTML
