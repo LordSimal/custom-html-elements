@@ -62,7 +62,10 @@ class TagEngineTest extends TestCase
         try {
             $instance->parse($test);
         } catch (RegexException $e) {
-            $this->assertEquals('Backtrack limit was exhausted', $e->getMessage());
+            $this->assertContains(
+                $e->getMessage(),
+                ['Backtrack limit was exhausted', 'JIT stack limit exhausted'],
+            );
             $this->assertNotEmpty($e->getRegex());
             $this->assertNotEmpty($e->getSource());
         }

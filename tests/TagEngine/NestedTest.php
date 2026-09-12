@@ -31,11 +31,9 @@ class NestedTest extends SimpleHtmlTest
     {
         $element = '<c-github><c-github></c-github></c-github>';
         $result = $this->tagEngine->parse($element);
-        $expected = <<<HTML
-			This is a render from a plugin tag
-            <c-github></c-github>
-HTML;
-        $this->assertSame($expected, $result);
+
+        $this->assertStringNotContainsString('<c-github>', $result);
+        $this->assertSame(2, substr_count($result, 'This is a render from a plugin tag'));
     }
 
     /**

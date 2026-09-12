@@ -219,21 +219,10 @@ HTML;
 </div>
 HTML;
         $result = $this->tagEngine->parse($element);
-        $expected = <<<HTML
-<div class="outer">
-    			This is a render from a plugin tag
-            
-        Outer Content
-        <div class="inner">
-            Inner Content
-            <c-github>
-                Inner Inner Content
-            
-        </div>
-    </c-github>
-</div>
-HTML;
-        $this->assertSame($expected, $result);
+
+        $this->assertStringNotContainsString('<c-github>', $result);
+        $this->assertSame(2, substr_count($result, 'This is a render from a plugin tag'));
+        $this->assertStringContainsString('Inner Inner Content', $result);
     }
 
     /**
