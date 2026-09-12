@@ -5,7 +5,6 @@ namespace LordSimal\CustomHtmlElements;
 
 use LordSimal\CustomHtmlElements\Error\ConfigException;
 use LordSimal\CustomHtmlElements\Error\RegexException;
-use LordSimal\CustomHtmlElements\Error\TagNotFoundException;
 use Spatie\StructureDiscoverer\Discover;
 
 class TagEngine
@@ -47,6 +46,11 @@ class TagEngine
     protected array $discovery_cache = [];
 
     /**
+     * @var array<string, class-string<\LordSimal\CustomHtmlElements\CustomTag>>
+     */
+    protected array $tags = [];
+
+    /**
      * Initialize TagEngine
      *
      * @param array $options to override existing settings
@@ -57,6 +61,7 @@ class TagEngine
         if ($options) {
             $this->options = array_merge($this->options, $options);
         }
+        $this->tags = TagRegistry::getTags();
         $this->setRegex();
         $this->registerTags();
 
@@ -128,6 +133,7 @@ class TagEngine
                     ->extending(CustomTag::class)->get();
                 /** @var \LordSimal\CustomHtmlElements\CustomTag|string $class */
                 foreach ($classes as $class) {
+                    $this->tags[$class::$tag] = $class;
                     TagRegistry::register($class);
                 }
             }
@@ -242,14 +248,15 @@ class TagEngine
             }
         }
 
-        try {
-            $class = TagRegistry::getTag(sprintf('%s-%s', $this->options['component_prefix'], $componentName));
+        $tagName = sprintf('%s-%s', $this->options['component_prefix'], $componentName);
+        if (isset($this->tags[$tagName])) {
+            $class = $this->tags[$tagName];
             $tag = new $class($attributes, $innerContent);
 
             if ($tag->disabled) {
                 return '';
             }
-        } catch (TagNotFoundException) {
+        } else {
             $tag = new SimpleTag($attributes, $innerContent);
             $tag::$tag = $componentName;
         }
