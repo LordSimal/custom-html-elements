@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace LordSimal\CustomHtmlElements\Test\TagEngine;
 
 use LordSimal\CustomHtmlElements\TagEngine;
+use LordSimal\CustomHtmlElements\Test\Tags\ClassProperties;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -11,6 +12,13 @@ use PHPUnit\Framework\TestCase;
  */
 class CustomTagsTest extends TestCase
 {
+    public function testHydratesNullablePublicProperty(): void
+    {
+        $tag = new ClassProperties(['nullable' => 'value']);
+
+        $this->assertSame('value', $tag->nullable);
+    }
+
     protected TagEngine $tagEngine;
 
     protected function setUp(): void
