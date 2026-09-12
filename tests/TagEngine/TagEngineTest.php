@@ -12,6 +12,19 @@ use PHPUnit\Framework\TestCase;
  */
 class TagEngineTest extends TestCase
 {
+    public function testEnginesKeepTheirOwnTagRegistrations(): void
+    {
+        $first = new TagEngine([
+            'tag_directories' => [dirname(__DIR__) . '/RegistryTags/First'],
+        ]);
+        $second = new TagEngine([
+            'tag_directories' => [dirname(__DIR__) . '/RegistryTags/Second'],
+        ]);
+
+        $this->assertSame('first', $first->parse('<c-collision />'));
+        $this->assertSame('second', $second->parse('<c-collision />'));
+    }
+
     public function testCanBeCreatedWithDefaultOptions(): void
     {
         $engine = new TagEngine();
