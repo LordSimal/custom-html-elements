@@ -12,6 +12,13 @@ use PHPUnit\Framework\TestCase;
  */
 class TagEngineTest extends TestCase
 {
+    public function testCanBeCreatedWithDefaultOptions(): void
+    {
+        $engine = new TagEngine();
+
+        $this->assertSame('<div>Content</div>', $engine->parse('<div>Content</div>'));
+    }
+
     /**
      * Test singleton instance creation
      *
