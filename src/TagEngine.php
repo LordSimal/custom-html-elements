@@ -6,6 +6,7 @@ namespace LordSimal\CustomHtmlElements;
 use LordSimal\CustomHtmlElements\Error\ConfigException;
 use LordSimal\CustomHtmlElements\Error\RegexException;
 use LordSimal\CustomHtmlElements\Error\TagNotFoundException;
+use ReflectionClass;
 use Spatie\StructureDiscoverer\Discover;
 
 class TagEngine
@@ -234,22 +235,35 @@ class TagEngine
      */
     protected function renderComponent(string $componentName, array $attributes, string $innerContent = ''): string
     {
+        try {
+            $class = TagRegistry::getTag(sprintf('%s-%s', $this->options['component_prefix'], $componentName));
+        } catch (TagNotFoundException) {
+            $class = null;
+        }
+
         if ($this->options['enable_cache']) {
-            $cacheKey = md5($componentName . serialize($attributes) . $innerContent);
+            $cacheKey = hash('sha256', serialize([
+                $componentName,
+                $attributes,
+                $innerContent,
+                $this->getComponentVersion($class),
+            ]));
             $cacheFile = $this->options['cache_dir'] . DIRECTORY_SEPARATOR . $cacheKey . '.html';
-            if (file_exists($cacheFile)) {
-                return file_get_contents($cacheFile) ?: '';
+            if (is_file($cacheFile)) {
+                $cached = file_get_contents($cacheFile);
+                if ($cached !== false) {
+                    return $cached;
+                }
             }
         }
 
-        try {
-            $class = TagRegistry::getTag(sprintf('%s-%s', $this->options['component_prefix'], $componentName));
+        if ($class !== null) {
             $tag = new $class($attributes, $innerContent);
 
             if ($tag->disabled) {
                 return '';
             }
-        } catch (TagNotFoundException) {
+        } else {
             $tag = new SimpleTag($attributes, $innerContent);
             $tag::$tag = $componentName;
         }
@@ -257,10 +271,51 @@ class TagEngine
         $html = $tag->render();
 
         if ($this->options['enable_cache']) {
-            file_put_contents($cacheFile, $html);
+            $this->writeCacheFile($cacheFile, $html);
         }
 
         return $html;
+    }
+
+    /**
+     * @param class-string<\LordSimal\CustomHtmlElements\CustomTag>|null $class
+     * @return string
+     */
+    protected function getComponentVersion(?string $class): string
+    {
+        if ($class === null) {
+            return '';
+        }
+
+        $file = (new ReflectionClass($class))->getFileName();
+        if ($file === false) {
+            return $class;
+        }
+
+        return $file . ':' . (hash_file('sha256', $file) ?: '');
+    }
+
+    /**
+     * @param string $cacheFile
+     * @param string $html
+     * @return void
+     */
+    protected function writeCacheFile(string $cacheFile, string $html): void
+    {
+        $temporaryFile = tempnam(dirname($cacheFile), basename($cacheFile) . '.');
+        if ($temporaryFile === false) {
+            return;
+        }
+
+        try {
+            if (file_put_contents($temporaryFile, $html, LOCK_EX) !== false) {
+                rename($temporaryFile, $cacheFile);
+            }
+        } finally {
+            if (file_exists($temporaryFile)) {
+                unlink($temporaryFile);
+            }
+        }
     }
 
     /**
