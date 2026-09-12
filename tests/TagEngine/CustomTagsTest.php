@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace LordSimal\CustomHtmlElements\Test\TagEngine;
 
 use LordSimal\CustomHtmlElements\TagEngine;
+use LordSimal\CustomHtmlElements\Test\Tags\ClassProperties;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -11,6 +12,13 @@ use PHPUnit\Framework\TestCase;
  */
 class CustomTagsTest extends TestCase
 {
+    public function testHydratesNullablePublicProperty(): void
+    {
+        $tag = new ClassProperties(['nullable' => 'value']);
+
+        $this->assertSame('value', $tag->nullable);
+    }
+
     protected TagEngine $tagEngine;
 
     protected function setUp(): void
@@ -41,6 +49,20 @@ class CustomTagsTest extends TestCase
 			</iframe>
 HTML;
         $this->assertSame($expected, $result);
+    }
+
+    public function testTagWithUnquotedAttribute(): void
+    {
+        $result = $this->tagEngine->parse('<c-class-properties test=unquoted />');
+
+        $this->assertSame('<div class="unquoted"></div>', trim($result));
+    }
+
+    public function testTagWithEmptyAttribute(): void
+    {
+        $result = $this->tagEngine->parse('<c-class-properties test="" />');
+
+        $this->assertSame('<div class=""></div>', trim($result));
     }
 
     /**
@@ -219,21 +241,10 @@ HTML;
 </div>
 HTML;
         $result = $this->tagEngine->parse($element);
-        $expected = <<<HTML
-<div class="outer">
-    			This is a render from a plugin tag
-            
-        Outer Content
-        <div class="inner">
-            Inner Content
-            <c-github>
-                Inner Inner Content
-            
-        </div>
-    </c-github>
-</div>
-HTML;
-        $this->assertSame($expected, $result);
+
+        $this->assertStringNotContainsString('<c-github>', $result);
+        $this->assertSame(2, substr_count($result, 'This is a render from a plugin tag'));
+        $this->assertStringContainsString('Inner Inner Content', $result);
     }
 
     /**

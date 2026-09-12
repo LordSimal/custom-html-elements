@@ -5,6 +5,7 @@ namespace LordSimal\CustomHtmlElements;
 
 use LordSimal\CustomHtmlElements\Error\ConfigException;
 use LordSimal\CustomHtmlElements\Error\RegexException;
+use ReflectionClass;
 use Spatie\StructureDiscoverer\Discover;
 
 class TagEngine
@@ -57,7 +58,6 @@ class TagEngine
      */
     public function __construct(array $options = [])
     {
-        $this->options['tag_directories'] = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'Tags' . DIRECTORY_SEPARATOR;
         if ($options) {
             $this->options = array_merge($this->options, $options);
         }
@@ -106,7 +106,9 @@ class TagEngine
 
         // Tag with content pattern: <c-tag attributes>content</c-tag>
         $contentOpen = "<$prefix-$tagName$whitespace$attributes>";
-        $contentInner = '(.*?)'; // Non-greedy content between tags
+        // Recurse through nested custom tags so a closing tag always belongs to
+        // the opening tag at the current nesting level.
+        $contentInner = '((?:(?R)|(?!<\/' . $prefix . '-\\3>).)*)';
         $contentClose = "<\/$prefix-\\3>"; // Closing tag, referencing the tag name from group 3
         $contentPattern = "$contentOpen$contentInner$contentClose";
 
@@ -131,9 +133,17 @@ class TagEngine
                 // This is quite expensive, so only do it once
                 $classes = Discover::in($tag_directory)->classes()
                     ->extending(CustomTag::class)->get();
-                /** @var \LordSimal\CustomHtmlElements\CustomTag|string $class */
                 foreach ($classes as $class) {
-                    $this->tags[$class::$tag] = $class;
+                    if (!is_subclass_of($class, CustomTag::class)) {
+                        continue;
+                    }
+
+                    $tagName = (new ReflectionClass($class))->getStaticPropertyValue('tag');
+                    if (!is_string($tagName)) {
+                        continue;
+                    }
+
+                    $this->tags[$tagName] = $class;
                     TagRegistry::register($class);
                 }
             }
@@ -208,13 +218,13 @@ class TagEngine
     protected function parseAttributes(string $attributesString): array
     {
         // Regex to match attributes (both static and dynamic)
-        $pattern = '/([:\w-]+)(?:=["\']([^"\']+)["\'])?/';
-        preg_match_all($pattern, $attributesString, $matches, PREG_SET_ORDER);
+        $pattern = '/([:\w-]+)(?:\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s"\'=<>`]+)))?/';
+        preg_match_all($pattern, $attributesString, $matches, PREG_SET_ORDER | PREG_UNMATCHED_AS_NULL);
 
         $attributes = [];
         foreach ($matches as $match) {
             $name = $match[1];
-            $value = $match[2] ?? true; // If no value, set it to true
+            $value = $match[2] ?? $match[3] ?? $match[4] ?? true; // If no value, set it to true
 
             $name = str_replace('-', '_', $name); // Replace hyphens with underscores so that it works with properties
 
@@ -240,20 +250,30 @@ class TagEngine
      */
     protected function renderComponent(string $componentName, array $attributes, string $innerContent = ''): string
     {
+        $tagName = sprintf('%s-%s', $this->options['component_prefix'], $componentName);
+        $class = $this->tags[$tagName] ?? null;
+
         if ($this->options['enable_cache']) {
-            $cacheKey = md5($componentName . serialize($attributes) . $innerContent);
+            $cacheKey = hash('sha256', serialize([
+                $componentName,
+                $attributes,
+                $innerContent,
+                $this->getComponentVersion($class),
+            ]));
             $cacheFile = $this->options['cache_dir'] . DIRECTORY_SEPARATOR . $cacheKey . '.html';
-            if (file_exists($cacheFile)) {
-                return file_get_contents($cacheFile) ?: '';
+            if (is_file($cacheFile)) {
+                $cached = file_get_contents($cacheFile);
+                if ($cached !== false) {
+                    return $cached;
+                }
             }
         }
 
-        $tagName = sprintf('%s-%s', $this->options['component_prefix'], $componentName);
-        if (isset($this->tags[$tagName])) {
-            $class = $this->tags[$tagName];
+        if ($class !== null) {
             $tag = new $class($attributes, $innerContent);
 
-            if ($tag->disabled) {
+            $properties = get_object_vars($tag);
+            if (($attributes['disabled'] ?? false) || ($properties['disabled'] ?? false)) {
                 return '';
             }
         } else {
@@ -264,10 +284,51 @@ class TagEngine
         $html = $tag->render();
 
         if ($this->options['enable_cache']) {
-            file_put_contents($cacheFile, $html);
+            $this->writeCacheFile($cacheFile, $html);
         }
 
         return $html;
+    }
+
+    /**
+     * @param class-string<\LordSimal\CustomHtmlElements\CustomTag>|null $class
+     * @return string
+     */
+    protected function getComponentVersion(?string $class): string
+    {
+        if ($class === null) {
+            return '';
+        }
+
+        $file = (new ReflectionClass($class))->getFileName();
+        if ($file === false) {
+            return $class;
+        }
+
+        return $file . ':' . (hash_file('sha256', $file) ?: '');
+    }
+
+    /**
+     * @param string $cacheFile
+     * @param string $html
+     * @return void
+     */
+    protected function writeCacheFile(string $cacheFile, string $html): void
+    {
+        $temporaryFile = tempnam(dirname($cacheFile), basename($cacheFile) . '.');
+        if ($temporaryFile === false) {
+            return;
+        }
+
+        try {
+            if (file_put_contents($temporaryFile, $html, LOCK_EX) !== false) {
+                rename($temporaryFile, $cacheFile);
+            }
+        } finally {
+            if (file_exists($temporaryFile)) {
+                unlink($temporaryFile);
+            }
+        }
     }
 
     /**

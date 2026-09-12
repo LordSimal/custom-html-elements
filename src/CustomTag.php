@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace LordSimal\CustomHtmlElements;
 
+use ReflectionObject;
+
 abstract class CustomTag
 {
     /**
@@ -23,8 +25,14 @@ abstract class CustomTag
         public string $innerContent = '',
     ) {
         // Overwrite properties with what is given in the attributes
+        $reflection = new ReflectionObject($this);
         foreach ($attributes as $key => $value) {
-            if (isset($this->$key)) {
+            if (
+                $reflection->hasProperty($key)
+                && $reflection->getProperty($key)->isPublic()
+                && !$reflection->getProperty($key)->isStatic()
+                && $reflection->getProperty($key)->getDeclaringClass()->getName() !== self::class
+            ) {
                 $this->$key = $value;
             }
         }
