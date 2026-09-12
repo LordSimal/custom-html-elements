@@ -43,6 +43,20 @@ HTML;
         $this->assertSame($expected, $result);
     }
 
+    public function testTagWithUnquotedAttribute(): void
+    {
+        $result = $this->tagEngine->parse('<c-class-properties test=unquoted />');
+
+        $this->assertSame('<div class="unquoted"></div>', trim($result));
+    }
+
+    public function testTagWithEmptyAttribute(): void
+    {
+        $result = $this->tagEngine->parse('<c-class-properties test="" />');
+
+        $this->assertSame('<div class=""></div>', trim($result));
+    }
+
     /**
      * Test a tag with a tailwind class
      *
