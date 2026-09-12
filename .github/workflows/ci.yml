@@ -73,7 +73,7 @@ jobs:
           tools: cs2pr
 
       - name: Composer Install
-        run: composer stan-setup
+        run: composer install --no-interaction --prefer-dist
 
       - name: Run phpcs
         run: vendor/bin/phpcs --report=checkstyle src/ tests/ | cs2pr
